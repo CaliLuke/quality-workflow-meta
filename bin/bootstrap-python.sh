@@ -150,10 +150,24 @@ YML
 echo "[bootstrap-python] Wrote .github/workflows/ci-python.yml"
 fi
 
-# Manual
+# Manual (ensure docs exist and always create a base manual if missing)
 mkdir -p docs
-if ! grep -q "## Python Variant" docs/safety-manual.md 2>/dev/null; then
-cat >> docs/safety-manual.md << 'MD'
+if [ ! -f docs/safety-manual.md ]; then
+  cat > docs/safety-manual.md << 'BASE'
+# Safety Manual
+
+This manual explains how to use and adjust the development safeguards installed
+by the bootstrap. It remains after the installer self-destructs.
+
+## Common Commands
+- Lint: `ruff check .` (Python) / `npm run lint` (Frontend)
+- Typecheck: `mypy .` (Python) / `npm run typecheck` (Frontend)
+- Tests: `pytest` (Python) / `npm run test` (Frontend)
+BASE
+fi
+
+if ! grep -q "^## Python Variant" docs/safety-manual.md 2>/dev/null; then
+  cat >> docs/safety-manual.md << 'MD'
 
 ## Python Variant
 - Install dev tools: `pip install -r requirements-dev.txt`
@@ -175,3 +189,13 @@ if command -v pre-commit >/dev/null 2>&1; then
 else
   echo "[bootstrap-python] 'pre-commit' not found on PATH. After installing dev deps, run: pre-commit install"
 fi
+
+# Summary of created/updated paths (best-effort)
+echo "[bootstrap-python] Created/updated files:"
+printf '%s\n' \
+  '  - requirements-dev.txt' \
+  '  - pyproject.toml' \
+  '  - .pre-commit-config.yaml' \
+  '  - scripts/python_verify.sh' \
+  '  - .github/workflows/ci-python.yml' \
+  '  - docs/safety-manual.md'

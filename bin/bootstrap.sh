@@ -32,14 +32,13 @@ fi
 
 case "$TYPE" in
   frontend)
-    exec "$(dirname "$0")/bootstrap-frontend.sh"
+    exec bash "$(dirname "$0")/bootstrap-frontend.sh"
     ;;
   python)
-    exec "$(dirname "$0")/bootstrap-python.sh"
+    exec bash "$(dirname "$0")/bootstrap-python.sh"
     ;;
   *)
     echo "[bootstrap] Unknown type: $TYPE" >&2
     usage; exit 2
     ;;
 esac
-

@@ -85,5 +85,6 @@ Next steps:
     husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event \
     jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 - Verify: npm run verify
-- Adjust safeties: see docs/safety-manual.md
+- Adjust safeties: see docs/safety-manual.md (should now exist)
+  - For Python, also see: requirements-dev.txt, .pre-commit-config.yaml, .github/workflows/ci-python.yml
 EON
