@@ -1,29 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[bootstrap-python] Preparing Python safeguards (pre-commit, ruff/black/isort, mypy, pytest, xenon/radon, CI)."
-
-# requirements-dev.txt
-if [ ! -f requirements-dev.txt ]; then
-cat > requirements-dev.txt << 'REQ'
-black==24.8.0
-ruff==0.6.9
-isort==5.13.2
-mypy==1.11.2
-pytest==8.3.3
-pytest-cov==5.0.0
-pre-commit==4.0.1
-radon==6.0.1
-xenon==0.9.2
-REQ
-echo "[bootstrap-python] Wrote requirements-dev.txt"
-else
-  echo "[bootstrap-python] requirements-dev.txt exists; leaving as-is."
-fi
+echo "[bootstrap-python] Preparing Python safeguards (pre-commit, ruff/black/isort, mypy, pytest, xenon/radon, CI) with uv (pyproject.toml)."
 
 # pyproject.toml (tool configs)
 if [ ! -f pyproject.toml ]; then
 cat > pyproject.toml << 'TOML'
+[project]
+name = "your-project"
+version = "0.0.0"
+requires-python = ">=3.11"
+readme = "README.md"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "black==24.8.0",
+  "ruff==0.6.9",
+  "isort==5.13.2",
+  "mypy==1.11.2",
+  "pytest==8.3.3",
+  "pytest-cov==5.0.0",
+  "pre-commit==4.0.1",
+  "radon==6.0.1",
+  "xenon==0.9.2",
+]
+
 [tool.black]
 line-length = 100
 target-version = ["py311"]
@@ -35,6 +37,8 @@ line_length = 100
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
 ignore = ["E203"]
 
@@ -49,9 +53,9 @@ warn_unused_configs = true
 [tool.pytest.ini_options]
 addopts = "-q --cov --cov-report=term-missing"
 TOML
-echo "[bootstrap-python] Wrote pyproject.toml"
+  echo "[bootstrap-python] Wrote pyproject.toml (uv-based)"
 else
-  echo "[bootstrap-python] pyproject.toml exists; leaving as-is."
+  echo "[bootstrap-python] pyproject.toml exists; leaving as-is. Consider adding [dependency-groups].dev with tooling if missing."
 fi
 
 # .pre-commit-config.yaml
@@ -99,19 +103,22 @@ cat > scripts/python_verify.sh << 'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[verify:py] Ruff (lint)" && ruff check . --fix
-echo "[verify:py] Black (format check)" && black --check .
-echo "[verify:py] Isort (imports check)" && isort --check-only .
-echo "[verify:py] Mypy (type check)" && mypy .
-echo "[verify:py] Pytest" && pytest
-echo "[verify:py] Radon (cc report)" && radon cc -s -a . || true
-echo "[verify:py] Xenon (complexity gate)" && xenon --max-absolute B --max-modules B --max-average B .
+RUN=""
+if command -v uv >/dev/null 2>&1; then RUN="uv run "; fi
+
+echo "[verify:py] Ruff (lint)" && ${RUN}ruff check . --fix
+echo "[verify:py] Black (format check)" && ${RUN}black --check .
+echo "[verify:py] Isort (imports check)" && ${RUN}isort --check-only .
+echo "[verify:py] Mypy (type check)" && ${RUN}mypy .
+echo "[verify:py] Pytest" && ${RUN}pytest
+echo "[verify:py] Radon (cc report)" && ${RUN}radon cc -s -a . || true
+echo "[verify:py] Xenon (complexity gate)" && ${RUN}xenon --max-absolute B --max-modules B --max-average B .
 echo "[verify:py] OK"
 SH
 chmod +x scripts/python_verify.sh
 fi
 
-# CI workflow
+# CI workflow (uv-based)
 mkdir -p .github/workflows
 if [ ! -f .github/workflows/ci-python.yml ]; then
 cat > .github/workflows/ci-python.yml << 'YML'
@@ -128,24 +135,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v3
         with:
           python-version: '3.11'
-          cache: 'pip'
-      - name: Install dev deps
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+      - name: Sync (all groups)
+        run: uv sync --all-groups
       - name: Lint & Typecheck
         run: |
-          ruff check .
-          black --check .
-          isort --check-only .
-          mypy .
+          uv run ruff check .
+          uv run black --check .
+          uv run isort --check-only .
+          uv run mypy .
       - name: Tests
-        run: pytest
+        run: uv run pytest
       - name: Complexity Gate (xenon)
-        run: xenon --max-absolute B --max-modules B --max-average B .
+        run: uv run xenon --max-absolute B --max-modules B --max-average B .
 YML
 echo "[bootstrap-python] Wrote .github/workflows/ci-python.yml"
 fi
@@ -170,30 +174,34 @@ if ! grep -q "^## Python Variant" docs/safety-manual.md 2>/dev/null; then
   cat >> docs/safety-manual.md << 'MD'
 
 ## Python Variant
-- Install dev tools: `pip install -r requirements-dev.txt`
-- Enable hooks: `pre-commit install`
-- Verify locally: `scripts/python_verify.sh`
+- Install dev tools: `uv sync --all-groups`
+- Enable hooks: `uv run pre-commit install`
+- Verify locally: `uv run scripts/python_verify.sh`
 - Adjust complexity thresholds: tweak xenon flags (e.g., `--max-absolute B`).
 - CI: `.github/workflows/ci-python.yml` runs lint, typecheck, tests, and xenon gate.
 MD
 fi
 
-echo "[bootstrap-python] Complete. Next: pip install -r requirements-dev.txt && pre-commit install && scripts/python_verify.sh"
+echo "[bootstrap-python] Complete. Next: 'uv sync --all-groups' && 'uv run pre-commit install' && 'uv run scripts/python_verify.sh'"
 
 # Attempt to install pre-commit hooks automatically if available
-if command -v pre-commit >/dev/null 2>&1; then
+if command -v uv >/dev/null 2>&1; then
+  echo "[bootstrap-python] Detected uv; installing hooks via uv..."
+  uv run pre-commit install || true
+  uv run pre-commit install --hook-type commit-msg || true
+  echo "[bootstrap-python] Pre-commit hooks installed (via uv)."
+elif command -v pre-commit >/dev/null 2>&1; then
   echo "[bootstrap-python] Detected pre-commit, installing hooks..."
   pre-commit install || true
   pre-commit install --hook-type commit-msg || true
   echo "[bootstrap-python] Pre-commit hooks installed."
 else
-  echo "[bootstrap-python] 'pre-commit' not found on PATH. After installing dev deps, run: pre-commit install"
+  echo "[bootstrap-python] 'uv' or 'pre-commit' not found on PATH. After syncing dev deps with uv, run: uv run pre-commit install"
 fi
 
 # Summary of created/updated paths (best-effort)
 echo "[bootstrap-python] Created/updated files:"
 printf '%s\n' \
-  '  - requirements-dev.txt' \
   '  - pyproject.toml' \
   '  - .pre-commit-config.yaml' \
   '  - scripts/python_verify.sh' \

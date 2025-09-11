@@ -76,20 +76,20 @@ if [ "$SELF_DESTRUCT" = "1" ] && [ -d ./bin ]; then
 fi
 
 # Print stack-specific next steps based on files present (robust to arg parsing)
-if [ -f requirements-dev.txt ] || [ -f .pre-commit-config.yaml ]; then
+if [ -f pyproject.toml ] && [ -f .pre-commit-config.yaml ]; then
   cat <<'EON'
 
 [one-shot] Done.
 
 Next steps (Python):
-- Install dev tools:
-  pip install -r requirements-dev.txt
+- Install dev tools (uv):
+  uv sync --all-groups
 - Enable hooks:
-  pre-commit install
+  uv run pre-commit install
 - Verify locally:
-  scripts/python_verify.sh
+  uv run scripts/python_verify.sh
 - Adjust safeties: see docs/safety-manual.md (should now exist)
-  - Also review: requirements-dev.txt, .pre-commit-config.yaml, .github/workflows/ci-python.yml
+  - Also review: pyproject.toml, .pre-commit-config.yaml, .github/workflows/ci-python.yml
 EON
 elif [ -f package.json ] || [ -f eslint.config.js ]; then
   cat <<'EON'
