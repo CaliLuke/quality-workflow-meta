@@ -28,6 +28,7 @@ This manual explains how to use and adjust the development safeguards installed 
   - Sync dev tools: `uv sync --all-groups`
   - Install hooks: `uv run pre-commit install`
   - Verify: `uv run scripts/python_verify.sh`
+  - Generate reports locally: `uv run scripts/python_reports.sh` (coverage.xml, htmlcov/, docs/analysis/*)
 
 ## Adjusting Safeties
 - Frontend:
@@ -39,10 +40,13 @@ This manual explains how to use and adjust the development safeguards installed 
   - Pre-commit behavior: `.husky/pre-commit`. Temporary skip: `--no-verify`.
   - Quality gate: `.github/workflows/quality-gate.yml` compares only changed TS/TSX.
   - Vite dev proxy: set `DEV_BACKEND_URL` during `npm run dev`.
+  - Commit guard: commits are blocked if no test files exist (e.g., `src/**/*.test.ts`).
 - Python:
   - Complexity: adjust xenon flags in `scripts/python_verify.sh` and CI (e.g., `--max-absolute B`).
   - mypy strictness: tune `[tool.mypy]` in `pyproject.toml`.
   - ruff/black/isort: configure under `[tool.ruff.*]`, `[tool.black]`, `[tool.isort]`.
+  - Coverage: tweak pytest coverage options under `[tool.pytest.ini_options]` in `pyproject.toml`.
+  - Commit guard: commits are blocked if no pytest files exist (e.g., `tests/test_example.py`).
 
 ## Disabling or Removing Pieces
 - Temporarily disable hooks: `git commit --no-verify` or comment lines in `.husky/*`.

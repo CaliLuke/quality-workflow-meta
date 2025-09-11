@@ -51,7 +51,7 @@ warn_redundant_casts = true
 warn_unused_configs = true
 
 [tool.pytest.ini_options]
-addopts = "-q --cov --cov-report=term-missing"
+addopts = "-q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov"
 TOML
   echo "[bootstrap-python] Wrote pyproject.toml (uv-based)"
 else
@@ -90,6 +90,15 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: []
+
+  - repo: local
+    hooks:
+      - id: ensure-tests-exist
+        name: Ensure tests exist
+        entry: python scripts/ensure_tests_exist.py
+        language: system
+        pass_filenames: false
+        always_run: true
 YML
 echo "[bootstrap-python] Wrote .pre-commit-config.yaml"
 else
@@ -106,6 +115,12 @@ set -euo pipefail
 RUN=""
 if command -v uv >/dev/null 2>&1; then RUN="uv run "; fi
 
+# Require at least one pytest file to exist
+if ! find tests -type f \( -name 'test_*.py' -o -name '*_test.py' \) 2>/dev/null | grep -q .; then
+  echo "[verify:py] No pytest files found (e.g., tests/test_example.py). Add tests before committing." >&2
+  exit 1
+fi
+
 echo "[verify:py] Ruff (lint)" && ${RUN}ruff check . --fix
 echo "[verify:py] Black (format check)" && ${RUN}black --check .
 echo "[verify:py] Isort (imports check)" && ${RUN}isort --check-only .
@@ -116,6 +131,52 @@ echo "[verify:py] Xenon (complexity gate)" && ${RUN}xenon --max-absolute B --max
 echo "[verify:py] OK"
 SH
 chmod +x scripts/python_verify.sh
+fi
+
+# local test-existence checker used by pre-commit
+if [ ! -f scripts/ensure_tests_exist.py ]; then
+cat > scripts/ensure_tests_exist.py << 'PY'
+import os, sys
+
+def has_tests():
+    for root, _, files in os.walk('tests'):
+        for f in files:
+            if (f.startswith('test_') and f.endswith('.py')) or f.endswith('_test.py'):
+                return True
+    return False
+
+if not has_tests():
+    print("[pre-commit] No tests found in 'tests/'. Add at least one (e.g., tests/test_example.py).", file=sys.stderr)
+    sys.exit(1)
+PY
+fi
+
+# local reports script (complexity + coverage artifacts)
+if [ ! -f scripts/python_reports.sh ]; then
+cat > scripts/python_reports.sh << 'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+
+RUN=""
+if command -v uv >/dev/null 2>&1; then RUN="uv run "; fi
+
+mkdir -p docs/analysis
+
+echo "[reports:py] Pytest with coverage (XML + HTML)"
+${RUN}pytest -q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov || true
+
+echo "[reports:py] Radon (cc) → docs/analysis/radon-cc.txt"
+${RUN}radon cc -s -a . | tee docs/analysis/radon-cc.txt || true
+
+echo "[reports:py] Radon (raw) → docs/analysis/radon-raw.txt"
+${RUN}radon raw -s . | tee docs/analysis/radon-raw.txt || true
+
+echo "[reports:py] Xenon gate (non-blocking for reports) → docs/analysis/xenon.txt"
+${RUN}xenon --max-absolute B --max-modules B --max-average B . | tee docs/analysis/xenon.txt || true
+
+echo "[reports:py] Done. Artifacts: coverage.xml, htmlcov/, docs/analysis/*.txt"
+SH
+chmod +x scripts/python_reports.sh
 fi
 
 # CI workflow (uv-based)
@@ -146,10 +207,31 @@ jobs:
           uv run black --check .
           uv run isort --check-only .
           uv run mypy .
-      - name: Tests
-        run: uv run pytest
+      - name: Tests + Coverage (XML + HTML)
+        run: uv run pytest -q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov
       - name: Complexity Gate (xenon)
         run: uv run xenon --max-absolute B --max-modules B --max-average B .
+      - name: Radon reports (cc, raw)
+        if: ${{ always() }}
+        run: |
+          mkdir -p docs/analysis
+          uv run radon cc -s -a . | tee docs/analysis/radon-cc.txt || true
+          uv run radon raw -s . | tee docs/analysis/radon-raw.txt || true
+      - name: CI summary (coverage excerpt)
+        if: ${{ always() }}
+        run: |
+          echo '### Python Coverage' >> "$GITHUB_STEP_SUMMARY"
+          # Print a brief summary to the step summary
+          uv run pytest -q --cov --cov-report=term-missing:skip-covered | tail -n 30 >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload coverage + analysis artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-coverage-and-analysis
+          path: |
+            coverage.xml
+            htmlcov/**
+            docs/analysis/**
 YML
 echo "[bootstrap-python] Wrote .github/workflows/ci-python.yml"
 fi
@@ -205,5 +287,6 @@ printf '%s\n' \
   '  - pyproject.toml' \
   '  - .pre-commit-config.yaml' \
   '  - scripts/python_verify.sh' \
+  '  - scripts/python_reports.sh' \
   '  - .github/workflows/ci-python.yml' \
   '  - docs/safety-manual.md'

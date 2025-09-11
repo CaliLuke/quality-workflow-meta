@@ -29,6 +29,15 @@ printf "[husky] staged files:\n" && git diff --cached --name-only || true
 printf "\n[husky] running lint-staged...\n"
 npm exec lint-staged
 
+# Require at least one test file to exist in the repository
+if ! find src tests -type f \
+  \( -name '*.test.ts' -o -name '*.test.tsx' -o -name '*.spec.ts' -o -name '*.spec.tsx' \
+     -name '*.test.js' -o -name '*.test.jsx' -o -name '*.spec.js' -o -name '*.spec.jsx' \) \
+  2>/dev/null | head -n 1 | grep -q .; then
+  printf "\n[husky] No test files found (e.g., src/**/*.test.ts). Add at least one test before committing.\n" >&2
+  exit 1
+fi
+
 printf "\n[husky] running typecheck...\n"
 npm run -s typecheck
 
@@ -56,4 +65,3 @@ SH
 chmod +x .husky/pre-push
 
 echo "[setup-husky] Hooks installed."
-
