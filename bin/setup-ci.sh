@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Frontend-only CI setup. Guard against running in non-frontend projects.
+if [ ! -f package.json ]; then
+  echo "[setup-ci] Skipping: package.json not found (frontend CI applies to JS/TS projects)." >&2
+  echo "[setup-ci] Hint: For Python projects, run 'bash bin/bootstrap.sh --type python' to scaffold ci-python.yml." >&2
+  exit 0
+fi
+
 mkdir -p .github/workflows
 
 # Minimal CI: quality, tests, build
@@ -27,6 +34,18 @@ jobs:
       - run: npm ci --no-audit --no-fund --omit=optional --legacy-peer-deps
       - run: npm run lint
       - run: npm run typecheck
+      - name: Complexity baseline (FTA)
+        run: |
+          npm run -s complexity:json
+          node scripts/check-fta-cap.mjs
+      - name: Upload FTA artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fta-baseline
+          path: |
+            reports/fta.json
+            docs/analysis/**
 
   tests:
     name: Unit Tests (Vitest)
@@ -114,4 +133,3 @@ else
 fi
 
 echo "[setup-ci] CI workflows scaffolded."
-

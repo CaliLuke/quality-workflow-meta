@@ -23,15 +23,20 @@ A meta-repo to design and document setup scripts that let an AI bootstrap a prod
 - Implement a first end-to-end bootstrap flow and validate on a sample repo.
 
 ## Getting Started
-- In a new or existing front-end repo, run the bootstrapper:
-  - `bash bin/bootstrap-frontend.sh` (optionally select PM: `PM=pnpm bash bin/bootstrap-frontend.sh`)
-  - To run as an ephemeral one-shot (removes the installer after setup): `SELF_DESTRUCT=1 bash bin/bootstrap-frontend.sh`
-- Install the core dev dependencies (pick one):
-  - npm: `npm i -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-  - pnpm: `pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-  - yarn: `yarn add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-- Verify locally:
-  - `npm run verify`
+- Frontend (TypeScript/React):
+  - Run: `bash bin/bootstrap-frontend.sh` (optionally select PM: `PM=pnpm bash bin/bootstrap-frontend.sh`)
+  - Ephemeral mode (removes installer after setup): `SELF_DESTRUCT=1 bash bin/bootstrap-frontend.sh`
+  - Install dev dependencies (pick one):
+    - npm: `npm i -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+    - pnpm: `pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+    - yarn: `yarn add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+  - Verify: `npm run verify`
+
+- Python:
+  - Run: `bash bin/bootstrap.sh --type python` (ephemeral via one‑shot below)
+  - Sync dev tools (uv): `uv sync --all-groups`
+  - Enable hooks: `uv run pre-commit install`
+  - Verify: `uv run scripts/python_verify.sh`
 
 Notes
 - Scripts are idempotent and won’t overwrite existing configs without cause.
@@ -45,6 +50,7 @@ Notes
   - With options: add `--ref <branch|tag>` or `--keep` to retain bin/ for inspection.
 - Or copy `docs/one-shot-installer.sh` into your project and run:
   - `bash docs/one-shot-installer.sh --type frontend --pm npm` (defaults to self-destruct)
+  - `bash docs/one-shot-installer.sh --type python`
 
 Security note: Always review install scripts before piping to `bash`.
 

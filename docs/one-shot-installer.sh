@@ -43,6 +43,15 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Validate type early for clearer feedback
+case "$TYPE_FLAG" in
+  frontend|python) ;;
+  *)
+    echo "[one-shot] Unsupported --type: '$TYPE_FLAG'. Use 'frontend' or 'python'." >&2
+    exit 2
+    ;;
+esac
+
 TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t qwm-installer)"
 cleanup() { rm -rf "$TMP_DIR"; }
 trap cleanup EXIT
@@ -70,9 +79,31 @@ else
 fi
 
 # Defensive cleanup if SELF_DESTRUCT didn't remove bin/
+# Defensive cleanup if SELF_DESTRUCT didn't remove bin/
 if [ "$SELF_DESTRUCT" = "1" ] && [ -d ./bin ]; then
   echo "[one-shot] Removing leftover installer (bin/)..."
   rm -rf ./bin || true
+fi
+
+# Post-run verification for expected artifacts
+if [ "$TYPE_FLAG" = "python" ]; then
+  echo "[one-shot] Verifying Python bootstrap artifacts..."
+  missing=0
+  for f in pyproject.toml .pre-commit-config.yaml .github/workflows/ci-python.yml; do
+    if [ ! -f "$f" ]; then echo "[one-shot] Missing: $f"; missing=1; fi
+  done
+  if [ $missing -eq 1 ]; then
+    echo "[one-shot] Warning: Some Python artifacts were not found. Check the logs above or re-run with --keep to inspect bin/." >&2
+  fi
+else
+  echo "[one-shot] Verifying Frontend bootstrap artifacts..."
+  missing=0
+  for f in package.json eslint.config.js .github/workflows/ci.yml; do
+    if [ ! -f "$f" ]; then echo "[one-shot] Missing: $f"; missing=1; fi
+  done
+  if [ $missing -eq 1 ]; then
+    echo "[one-shot] Warning: Some Frontend artifacts were not found. Check the logs above or re-run with --keep to inspect bin/." >&2
+  fi
 fi
 
 # Print stack-specific next steps based on files present (robust to arg parsing)
