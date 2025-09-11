@@ -60,6 +60,16 @@ jobs:
       - run: npm ci --no-audit --no-fund --legacy-peer-deps
       - name: Tests (Vitest + Coverage)
         run: npm run test -- --coverage
+      - name: CI summary (coverage excerpt)
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          echo '### Frontend Coverage' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e 'const s=require("./coverage/coverage-summary.json").total; console.log(`\n- Lines: ${s.lines.pct}%\n- Functions: ${s.functions.pct}%\n- Branches: ${s.branches.pct}%\n- Statements: ${s.statements.pct}%\n`);' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "\ncoverage/coverage-summary.json not found (ensure @vitest/coverage-v8 is installed)" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Upload coverage artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
