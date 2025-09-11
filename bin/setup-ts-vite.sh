@@ -164,6 +164,14 @@ export default defineConfig({
     isolate: true,
     clearMocks: true,
     restoreMocks: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      reportsDirectory: 'coverage',
+      all: true,
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/tests/**', 'src/test/**', '**/*.stories.{ts,tsx}'],
+    },
   },
 })
 TS
@@ -177,4 +185,3 @@ if [ ! -d src/test ]; then mkdir -p src/test; fi
 if [ ! -f src/test/setup.ts ]; then echo "// test setup placeholder" > src/test/setup.ts; fi
 
 echo "[setup-ts-vite] TypeScript + Vite + Vitest baseline ensured."
-

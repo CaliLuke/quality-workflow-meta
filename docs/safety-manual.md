@@ -23,6 +23,7 @@ This manual explains how to use and adjust the development safeguards installed 
   - Tests: `npm run test`
   - Full verification: `npm run verify`
   - Generate complexity report (markdown): `npm run complexity:report`
+  - Coverage locally: `npm run test -- --coverage` (artifacts in `coverage/`, includes lcov and HTML report)
   - CI runs a full FTA baseline on every build and uploads `reports/fta.json`.
 - Python:
   - Sync dev tools: `uv sync --all-groups`

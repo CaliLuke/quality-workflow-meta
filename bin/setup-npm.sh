@@ -40,6 +40,6 @@ echo "[setup-npm] Add core devDependencies (run install manually to avoid networ
 echo "[setup-npm] Suggested devDependencies:"
 cat <<DEPS
   eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
-  husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom \
+  husky lint-staged vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom \
   typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 DEPS

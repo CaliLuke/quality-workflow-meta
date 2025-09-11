@@ -58,7 +58,16 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci --no-audit --no-fund --legacy-peer-deps
-      - run: npm run test
+      - name: Tests (Vitest + Coverage)
+        run: npm run test -- --coverage
+      - name: Upload coverage artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: |
+            coverage/**
+            !coverage/tmp/**
 
   build:
     name: Build (Vite)

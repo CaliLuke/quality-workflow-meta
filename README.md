@@ -23,6 +23,14 @@ A meta-repo to design and document setup scripts that let an AI bootstrap a prod
 - Implement a first end-to-end bootstrap flow and validate on a sample repo.
 
 ## Getting Started
+- Prerequisites:
+  - Frontend: Node.js 20+ and a package manager (npm/pnpm/yarn).
+  - Python: Install uv (https://docs.astral.sh/uv/). Python 3.11+ recommended.
+
+### Install uv
+- macOS (Homebrew): `brew install uv`
+- Linux/macOS (official script): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Verify: `uv --version`
 - Frontend (TypeScript/React):
   - Run: `bash bin/bootstrap-frontend.sh` (optionally select PM: `PM=pnpm bash bin/bootstrap-frontend.sh`)
   - Ephemeral mode (removes installer after setup): `SELF_DESTRUCT=1 bash bin/bootstrap-frontend.sh`
@@ -37,6 +45,7 @@ A meta-repo to design and document setup scripts that let an AI bootstrap a prod
   - Sync dev tools (uv): `uv sync --all-groups`
   - Enable hooks: `uv run pre-commit install`
   - Verify: `uv run scripts/python_verify.sh`
+  - Generate reports: `uv run scripts/python_reports.sh` (coverage.xml, htmlcov/, docs/analysis/*)
 
 Notes
 - Scripts are idempotent and won’t overwrite existing configs without cause.
@@ -53,6 +62,21 @@ Notes
   - `bash docs/one-shot-installer.sh --type python`
 
 Security note: Always review install scripts before piping to `bash`.
+
+## Policies & CI Summary
+- Test presence required (commit guards):
+  - Frontend: pre-commit blocks commits if no test files exist (e.g., `src/**/*.test.ts`).
+  - Python: pre-commit blocks commits if no pytest files exist (e.g., `tests/test_example.py`).
+- Frontend CI:
+  - Quality: lint + typecheck + full FTA baseline (fails when any file exceeds the hard cap; artifacts uploaded).
+  - Tests (Vitest) with coverage artifacts (lcov + HTML) uploaded, and Build (Vite) jobs.
+  - PR Quality Gate: delta-only FTA on changed TS/TSX files for review signal.
+- Python CI:
+  - uv setup + sync all groups.
+  - Lint/format/imports (ruff/black/isort), typecheck (mypy), tests with coverage (XML + HTML).
+  - Complexity: xenon gate; radon CC/RAW reports; artifacts uploaded (coverage.xml, htmlcov/, docs/analysis/*).
+
+See `docs/safety-manual.md` for tuning options, thresholds, and common commands.
 
 ## License
 This project is licensed under the MIT License (see `LICENSE`). MIT permits use and modification as long as attribution is retained.
