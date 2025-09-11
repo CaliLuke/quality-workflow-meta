@@ -171,6 +171,12 @@ export default defineConfig({
       all: true,
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/**/tests/**', 'src/test/**', '**/*.stories.{ts,tsx}'],
+      thresholds: {
+        lines: 20,
+        functions: 20,
+        branches: 10,
+        statements: 20,
+      },
     },
   },
 })

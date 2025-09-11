@@ -51,7 +51,7 @@ warn_redundant_casts = true
 warn_unused_configs = true
 
 [tool.pytest.ini_options]
-addopts = "-q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov"
+addopts = "-q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=20"
 TOML
   echo "[bootstrap-python] Wrote pyproject.toml (uv-based)"
 else
@@ -208,7 +208,7 @@ jobs:
           uv run isort --check-only .
           uv run mypy .
       - name: Tests + Coverage (XML + HTML)
-        run: uv run pytest -q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov
+        run: uv run pytest -q --cov --cov-report=term-missing:skip-covered --cov-report=xml:coverage.xml --cov-report=html:htmlcov --cov-fail-under=20
       - name: Complexity Gate (xenon)
         run: uv run xenon --max-absolute B --max-modules B --max-average B .
       - name: Radon reports (cc, raw)

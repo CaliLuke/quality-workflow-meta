@@ -23,7 +23,7 @@ This manual explains how to use and adjust the development safeguards installed 
   - Tests: `npm run test`
   - Full verification: `npm run verify`
   - Generate complexity report (markdown): `npm run complexity:report`
-  - Coverage locally: `npm run test -- --coverage` (artifacts in `coverage/`, includes lcov and HTML report)
+  - Coverage locally: `npm run test -- --coverage` (artifacts in `coverage/`, includes lcov and HTML report). Minimum thresholds start low (lines 20%); ratchet up over time by editing `coverage.thresholds` in `vitest.config.ts`.
   - CI runs a full FTA baseline on every build and uploads `reports/fta.json`.
 - Python:
   - Sync dev tools: `uv sync --all-groups`
@@ -46,7 +46,7 @@ This manual explains how to use and adjust the development safeguards installed 
   - Complexity: adjust xenon flags in `scripts/python_verify.sh` and CI (e.g., `--max-absolute B`).
   - mypy strictness: tune `[tool.mypy]` in `pyproject.toml`.
   - ruff/black/isort: configure under `[tool.ruff.*]`, `[tool.black]`, `[tool.isort]`.
-  - Coverage: tweak pytest coverage options under `[tool.pytest.ini_options]` in `pyproject.toml`.
+  - Coverage: CI enforces a low starting threshold (`--cov-fail-under=20`). Adjust in `[tool.pytest.ini_options]` under `addopts` in `pyproject.toml` to ratchet up as coverage grows.
   - Commit guard: commits are blocked if no pytest files exist (e.g., `tests/test_example.py`).
 
 ## Disabling or Removing Pieces

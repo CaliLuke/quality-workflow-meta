@@ -69,11 +69,11 @@ Security note: Always review install scripts before piping to `bash`.
   - Python: pre-commit blocks commits if no pytest files exist (e.g., `tests/test_example.py`).
 - Frontend CI:
   - Quality: lint + typecheck + full FTA baseline (fails when any file exceeds the hard cap; artifacts uploaded).
-  - Tests (Vitest) with coverage artifacts (lcov + HTML) uploaded, and Build (Vite) jobs.
+  - Tests (Vitest) with coverage artifacts (lcov + HTML) uploaded; minimum thresholds start low (lines 20%) and should be ratcheted up as the codebase improves. Build (Vite) job runs after tests.
   - PR Quality Gate: delta-only FTA on changed TS/TSX files for review signal.
 - Python CI:
   - uv setup + sync all groups.
-  - Lint/format/imports (ruff/black/isort), typecheck (mypy), tests with coverage (XML + HTML).
+  - Lint/format/imports (ruff/black/isort), typecheck (mypy), tests with coverage (XML + HTML, fail-under=20%). Increase this threshold over time in `pyproject.toml`.
   - Complexity: xenon gate; radon CC/RAW reports; artifacts uploaded (coverage.xml, htmlcov/, docs/analysis/*).
 
 See `docs/safety-manual.md` for tuning options, thresholds, and common commands.
