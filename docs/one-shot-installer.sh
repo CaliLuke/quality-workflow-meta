@@ -75,8 +75,9 @@ if [ "$SELF_DESTRUCT" = "1" ] && [ -d ./bin ]; then
   rm -rf ./bin || true
 fi
 
-if [ "$TYPE_FLAG" = "python" ]; then
-  cat <<EON
+# Print stack-specific next steps based on files present (robust to arg parsing)
+if [ -f requirements-dev.txt ] || [ -f .pre-commit-config.yaml ]; then
+  cat <<'EON'
 
 [one-shot] Done.
 
@@ -90,8 +91,8 @@ Next steps (Python):
 - Adjust safeties: see docs/safety-manual.md (should now exist)
   - Also review: requirements-dev.txt, .pre-commit-config.yaml, .github/workflows/ci-python.yml
 EON
-else
-  cat <<EON
+elif [ -f package.json ] || [ -f eslint.config.js ]; then
+  cat <<'EON'
 
 [one-shot] Done.
 
@@ -103,5 +104,14 @@ Next steps (Frontend):
 - Verify:
   npm run verify
 - Adjust safeties: see docs/safety-manual.md (should now exist)
+EON
+else
+  cat <<'EON'
+
+[one-shot] Done.
+
+Next steps:
+- Review docs/safety-manual.md
+- Confirm expected files were created (Python or Frontend stack). Re-run with the desired --type if needed.
 EON
 fi
