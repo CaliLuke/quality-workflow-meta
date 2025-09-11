@@ -1,0 +1,6 @@
+auto-k-frontend/
+.vscode/
+# Local-only helper scripts
+bin-local/
+auto-k-backend/
+AGENTS.md
