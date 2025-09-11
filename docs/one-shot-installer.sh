@@ -75,16 +75,33 @@ if [ "$SELF_DESTRUCT" = "1" ] && [ -d ./bin ]; then
   rm -rf ./bin || true
 fi
 
-cat <<EON
+if [ "$TYPE_FLAG" = "python" ]; then
+  cat <<EON
 
 [one-shot] Done.
 
-Next steps:
+Next steps (Python):
+- Install dev tools:
+  pip install -r requirements-dev.txt
+- Enable hooks:
+  pre-commit install
+- Verify locally:
+  scripts/python_verify.sh
+- Adjust safeties: see docs/safety-manual.md (should now exist)
+  - Also review: requirements-dev.txt, .pre-commit-config.yaml, .github/workflows/ci-python.yml
+EON
+else
+  cat <<EON
+
+[one-shot] Done.
+
+Next steps (Frontend):
 - Install dev dependencies (example with npm):
   npm i -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
     husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event \
     jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
-- Verify: npm run verify
+- Verify:
+  npm run verify
 - Adjust safeties: see docs/safety-manual.md (should now exist)
-  - For Python, also see: requirements-dev.txt, .pre-commit-config.yaml, .github/workflows/ci-python.yml
 EON
+fi
