@@ -72,7 +72,23 @@ Notes (from original README, clarified)
 - Enforces tests and metrics locally: commits re-run lint, typecheck, tests, and FTA checks; pre-push runs lint + typecheck.
 - CI mirrors local checks and uploads artifacts (coverage, analysis reports).
 
-## Manual for AI (JavaScript/TypeScript)
+## Manual for AI
+
+This section defines exactly what an AI (or a human) should do before committing or pushing changes. It starts with a common install step, then provides stack-specific flows.
+
+### Common Setup (Install Bootstrap)
+- Create a feature branch, then install the safeguards in your repo using one of:
+```
+# Frontend (JavaScript/TypeScript)
+bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type frontend --pm bun
+
+# Python
+bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type python
+```
+- The installer is ephemeral by default (self-destructs) and leaves standard files (hooks/configs/scripts) plus `docs/safety-manual.md`.
+- After install, follow the appropriate stack section below.
+
+### JavaScript/TypeScript
 
 Prerequisites
 - Node.js 20+ and a package manager (bun/pnpm/yarn). Install Bun v1+.
@@ -120,7 +136,7 @@ If your project uses different scripts, run them in the analogous step. For exam
 Related config files (JS/TS)
 - `eslint.config.js`, `vitest.config.ts`, `.husky/*`, `scripts/check-fta-cap.mjs`, `scripts/compare-fta.mjs`, `scripts/generate-complexity-report.mjs`.
 
-## Manual for AI (Python)
+### Python
 
 Prerequisites
 - Python 3.11+ recommended.
