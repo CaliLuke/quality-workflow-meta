@@ -72,19 +72,12 @@ Notes (from original README, clarified)
 - Enforces tests and metrics locally: commits re-run lint, typecheck, tests, and FTA checks; pre-push runs lint + typecheck.
 - CI mirrors local checks and uploads artifacts (coverage, analysis reports).
 
-## Manual for AI
-
-Follow these exact steps before commit/push. Use the stack that matches your repo after bootstrap.
+## Manual for AI (JavaScript/TypeScript)
 
 Prerequisites
-- Frontend: Node.js 20+ and a package manager (bun/pnpm/yarn). Install Bun v1+.
-- Python: Install uv (https://docs.astral.sh/uv/). Python 3.11+ recommended.
-- Install uv:
-  - macOS (Homebrew): `brew install uv`
-  - Linux/macOS (official): `curl -LsSf https://astral.sh/uv/install.sh | sh`
-  - Verify: `uv --version`
+- Node.js 20+ and a package manager (bun/pnpm/yarn). Install Bun v1+.
 
-Frontend sequence (JS/TS)
+Steps
 1) Run metrics
 ```
 bun run complexity:json
@@ -122,7 +115,21 @@ bun run typecheck
 git push
 ```
 
-Python sequence
+If your project uses different scripts, run them in the analogous step. For example, replace `bun run test` with your project’s test command. (Clarify: do not invent scripts; use actual ones in your repo.)
+
+Related config files (JS/TS)
+- `eslint.config.js`, `vitest.config.ts`, `.husky/*`, `scripts/check-fta-cap.mjs`, `scripts/compare-fta.mjs`, `scripts/generate-complexity-report.mjs`.
+
+## Manual for AI (Python)
+
+Prerequisites
+- Python 3.11+ recommended.
+- Install uv (https://docs.astral.sh/uv/):
+  - macOS (Homebrew): `brew install uv`
+  - Linux/macOS (official): `curl -LsSf https://astral.sh/uv/install.sh | sh`
+  - Verify: `uv --version`
+
+Steps
 1) Run metrics (and reports)
 ```
 uv sync --all-groups
@@ -160,11 +167,8 @@ uv run scripts/python_verify.sh
 git push
 ```
 
-If your project uses different scripts, run them in the analogous step. For example, replace `bun run test` with your project’s test command. (Clarify: do not invent scripts; use actual ones in your repo.)
-
-Related config files
-- Frontend: `eslint.config.js`, `vitest.config.ts`, `.husky/*`, `scripts/check-fta-cap.mjs`, `scripts/compare-fta.mjs`, `scripts/generate-complexity-report.mjs`.
-- Python: `pyproject.toml`, `.pre-commit-config.yaml`, `scripts/python_verify.sh`, `scripts/python_reports.sh`.
+Related config files (Python)
+- `pyproject.toml`, `.pre-commit-config.yaml`, `scripts/python_verify.sh`, `scripts/python_reports.sh`.
 
 ## Configuration & Thresholds
 
