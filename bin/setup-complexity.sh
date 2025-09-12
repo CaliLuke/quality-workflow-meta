@@ -14,7 +14,7 @@ const CAP = Number(process.env.FTA_HARD_CAP || 50)
 const JSON_PATH = path.resolve('reports/fta.json')
 
 if (!fs.existsSync(JSON_PATH)) {
-  console.error(`[FTA] Missing ${JSON_PATH}. Generate it first with \`npm run complexity:json\`.`)
+  console.error(`[FTA] Missing ${JSON_PATH}. Generate it first with \`bun run complexity:json\`.`)
   process.exit(2)
 }
 
@@ -168,7 +168,7 @@ function readJson(p) { return JSON.parse(fs.readFileSync(p, 'utf8')) }
 function ensureDir(d) { fs.mkdirSync(d, { recursive: true }) }
 function table(rows, headers){ return ['| '+headers.join(' | ')+' |','| '+headers.map(()=> '---').join(' | ')+' |',...rows.map(r=>'| '+headers.map(h=>String(r[h]??'')).join(' | ')+' |')].join('\n') }
 
-if (!fs.existsSync(jsonPath)) { console.error('[complexity] reports/fta.json not found. Run `npm run complexity:json` first.'); process.exit(1) }
+if (!fs.existsSync(jsonPath)) { console.error('[complexity] reports/fta.json not found. Run `bun run complexity:json` first.'); process.exit(1) }
 const data = readJson(jsonPath)
 const files = data.map(d=>({
   file: `src/${d.file_name}`,
@@ -204,4 +204,3 @@ echo "[setup-complexity] Wrote scripts/generate-complexity-report.mjs"
 fi
 
 echo "[setup-complexity] Complexity tooling scaffolded."
-

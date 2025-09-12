@@ -27,17 +27,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci --no-audit --no-fund --omit=optional --legacy-peer-deps
-      - run: npm run lint
-      - run: npm run typecheck
+      - run: bun install
+      - run: bun run lint
+      - run: bun run typecheck
       - name: Complexity baseline (FTA)
         run: |
-          npm run -s complexity:json
-          node scripts/check-fta-cap.mjs
+          bun run complexity:json
+          bun scripts/check-fta-cap.mjs
       - name: Upload FTA artifacts
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -53,13 +55,15 @@ jobs:
     needs: quality
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci --no-audit --no-fund --legacy-peer-deps
+      - run: bun install
       - name: Tests (Vitest + Coverage)
-        run: npm run test -- --coverage
+        run: bun run test -- --coverage
       - name: CI summary (coverage excerpt)
         if: ${{ always() }}
         shell: bash
@@ -85,12 +89,11 @@ jobs:
     needs: [quality, tests]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v1
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci --no-audit --no-fund --legacy-peer-deps
-      - run: npm run build
+          bun-version: latest
+      - run: bun install
+      - run: bun run build
 YML
   echo "[setup-ci] Wrote .github/workflows/ci.yml"
 else
@@ -113,21 +116,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci --no-audit --no-fund --legacy-peer-deps
+      - run: bun install
       - name: Generate current FTA JSON
-        run: npm run -s complexity:json
+        run: bun run complexity:json
       - name: Generate base FTA JSON
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           git worktree add ../base "$BASE_SHA"
           pushd ../base
-          npm ci --no-audit --no-fund --legacy-peer-deps
-          npx -y fta src --format json > reports/fta.json
+          bun install
+          bunx fta src --format json > reports/fta.json
           popd
           mkdir -p reports
           cp ../base/reports/fta.json reports/fta.base.json
@@ -144,7 +149,7 @@ jobs:
         env:
           FTA_HARD_CAP: ${{ vars.FTA_HARD_CAP || 50 }}
           FTA_DELTA_PCT: ${{ vars.FTA_DELTA_PCT || 10 }}
-        run: node scripts/compare-fta.mjs --current=reports/fta.json --base=reports/fta.base.json --changed='${{ steps.diff.outputs.changed }}'
+        run: bun scripts/compare-fta.mjs --current=reports/fta.json --base=reports/fta.base.json --changed='${{ steps.diff.outputs.changed }}'
 YML
   echo "[setup-ci] Wrote .github/workflows/quality-gate.yml"
 else

@@ -19,7 +19,7 @@ Usage: one-shot-installer.sh [options]
 Options:
   --repo <url>        Source repo for bootstrap scripts (default: ${REPO_URL})
   --ref <git-ref>     Git ref/branch/tag to use         (default: ${REPO_REF})
-  --pm <npm|pnpm|yarn>Package manager to assume          (default: auto-detect)
+  --pm <bun|pnpm|yarn> Package manager to assume         (default: auto-detect)
   --type <frontend|python> Select installer path         (default: frontend)
   --keep              Do NOT self-destruct install scripts after setup
   -h, --help          Show this help
@@ -128,12 +128,12 @@ elif [ -f package.json ] || [ -f eslint.config.js ]; then
 [one-shot] Done.
 
 Next steps (Frontend):
-- Install dev dependencies (example with npm):
-  npm i -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
+- Install dev dependencies (bun):
+  bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
     husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event \
     jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 - Verify:
-  npm run verify
+  bun run verify
 - Adjust safeties: see docs/safety-manual.md (should now exist)
 EON
 else

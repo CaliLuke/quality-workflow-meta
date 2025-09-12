@@ -246,9 +246,9 @@ This manual explains how to use and adjust the development safeguards installed
 by the bootstrap. It remains after the installer self-destructs.
 
 ## Common Commands
-- Lint: `ruff check .` (Python) / `npm run lint` (Frontend)
-- Typecheck: `mypy .` (Python) / `npm run typecheck` (Frontend)
-- Tests: `pytest` (Python) / `npm run test` (Frontend)
+- Lint: `ruff check .` (Python) / `bun run lint` (Frontend)
+- Typecheck: `mypy .` (Python) / `bun run typecheck` (Frontend)
+- Tests: `pytest` (Python) / `bun run test` (Frontend)
 BASE
 fi
 

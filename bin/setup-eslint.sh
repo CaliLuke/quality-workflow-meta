@@ -69,6 +69,5 @@ const pkg = JSON.parse(fs.readFileSync('package.json','utf8'))
 pkg.scripts = pkg.scripts || {}
 pkg.scripts.lint = pkg.scripts.lint || 'eslint .'
 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n')
-console.log('[setup-eslint] ensured npm script: lint')
+console.log('[setup-eslint] ensured script: lint')
 NODE
-

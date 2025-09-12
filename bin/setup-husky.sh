@@ -3,19 +3,24 @@ set -euo pipefail
 
 PM="${PM:-}"
 if [ -z "$PM" ]; then
-  if command -v pnpm >/dev/null 2>&1; then PM=pnpm
+  if command -v bun >/dev/null 2>&1; then PM=bun
+  elif command -v pnpm >/dev/null 2>&1; then PM=pnpm
   elif command -v yarn >/dev/null 2>&1; then PM=yarn
-  else PM=npm; fi
+  else PM=bun; fi
 fi
 
 echo "[setup-husky] Ensuring Husky is set up (prepare script + init)"
-case "$PM" in
-  pnpm) pnpm pkg set scripts.prepare=husky >/dev/null || true ;;
-  yarn) jq '.scripts.prepare="husky"' package.json > package.json.tmp && mv package.json.tmp package.json || true ;;
-  npm|*) npm pkg set scripts.prepare=husky >/dev/null || true ;;
-esac
+node - <<'NODE'
+const fs=require('fs')
+const p='package.json'
+const pkg=fs.existsSync(p)?JSON.parse(fs.readFileSync(p,'utf8')):{}
+pkg.scripts=pkg.scripts||{}
+pkg.scripts.prepare='husky'
+fs.writeFileSync(p,JSON.stringify(pkg,null,2)+'\n')
+console.log('[setup-husky] ensure scripts.prepare=husky')
+NODE
 
-npx --yes husky >/dev/null 2>&1 || true
+bunx husky >/dev/null 2>&1 || true
 
 mkdir -p .husky
 
@@ -27,7 +32,7 @@ printf "\n\033[1;36m[husky] pre-commit: lint + typecheck + tests + complexity\03
 printf "[husky] staged files:\n" && git diff --cached --name-only || true
 
 printf "\n[husky] running lint-staged...\n"
-npm exec lint-staged
+bunx lint-staged
 
 # Require at least one test file to exist in the repository
 if ! find src tests -type f \
@@ -39,15 +44,15 @@ if ! find src tests -type f \
 fi
 
 printf "\n[husky] running typecheck...\n"
-npm run -s typecheck
+bun run typecheck
 
 printf "\n[husky] running tests...\n"
-npm run -s test
+bun run test
 
 printf "\n[husky] generating complexity JSON...\n"
-npm run -s complexity:json
+bun run complexity:json
 printf "[husky] enforcing FTA cap...\n"
-node scripts/check-fta-cap.mjs
+bun scripts/check-fta-cap.mjs
 
 printf "\n\033[1;32m[husky] pre-commit passed.\033[0m\n\n"
 SH
@@ -58,8 +63,8 @@ cat > .husky/pre-push <<'SH'
 set -e
 
 printf "\n\033[1;36m[husky] pre-push: lint + typecheck\033[0m\n"
-npm run -s lint
-npm run -s typecheck
+bun run lint
+bun run typecheck
 printf "\n\033[1;32m[husky] pre-push passed.\033[0m\n\n"
 SH
 chmod +x .husky/pre-push

@@ -6,9 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 PM="${PM:-}"
 if [ -z "$PM" ]; then
-  if command -v pnpm >/dev/null 2>&1; then PM=pnpm
+  if command -v bun >/dev/null 2>&1; then PM=bun
+  elif command -v pnpm >/dev/null 2>&1; then PM=pnpm
   elif command -v yarn >/dev/null 2>&1; then PM=yarn
-  else PM=npm; fi
+  else PM=bun; fi
 fi
 
 SELF_DESTRUCT="${SELF_DESTRUCT:-0}"
@@ -33,7 +34,7 @@ See README “Getting Started” for commands. Adjust thresholds via env vars `F
 MD
 fi
 
-echo "\n[bootstrap] Complete. Next: run '$PM install' and 'npm run verify'"
+echo "\n[bootstrap] Complete. Next: run '$PM install' and '$PM run verify'"
 
 if [ "$SELF_DESTRUCT" = "1" ]; then
   echo "[bootstrap] Scheduling self-cleanup of bin/ installer scripts..."

@@ -18,12 +18,12 @@ This manual explains how to use and adjust the development safeguards installed 
 
 ## Common Commands
 - Frontend:
-  - Lint: `npm run lint`
-  - Typecheck: `npm run typecheck`
-  - Tests: `npm run test`
-  - Full verification: `npm run verify`
-  - Generate complexity report (markdown): `npm run complexity:report`
-  - Coverage locally: `npm run test -- --coverage` (artifacts in `coverage/`, includes lcov and HTML report). Minimum thresholds start low (lines 20%); ratchet up over time by editing `coverage.thresholds` in `vitest.config.ts`.
+  - Lint: `bun run lint`
+  - Typecheck: `bun run typecheck`
+  - Tests: `bun run test`
+  - Full verification: `bun run verify`
+  - Generate complexity report (markdown): `bun run complexity:report`
+  - Coverage locally: `bun run test -- --coverage` (artifacts in `coverage/`, includes lcov and HTML report). Minimum thresholds start low (lines 20%); ratchet up over time by editing `coverage.thresholds` in `vitest.config.ts`.
   - CI runs a full FTA baseline on every build and uploads `reports/fta.json`.
 - Python:
   - Sync dev tools: `uv sync --all-groups`
@@ -40,7 +40,7 @@ This manual explains how to use and adjust the development safeguards installed 
   - ESLint rule budget: `complexity` rule (in `eslint.config.js`) defaults to 15.
   - Pre-commit behavior: `.husky/pre-commit`. Temporary skip: `--no-verify`.
   - Quality gate: `.github/workflows/quality-gate.yml` compares only changed TS/TSX.
-  - Vite dev proxy: set `DEV_BACKEND_URL` during `npm run dev`.
+  - Vite dev proxy: set `DEV_BACKEND_URL` during `bun run dev`.
   - Commit guard: commits are blocked if no test files exist (e.g., `src/**/*.test.ts`).
 - Python:
   - Complexity: adjust xenon flags in `scripts/python_verify.sh` and CI (e.g., `--max-absolute B`).
@@ -57,11 +57,11 @@ This manual explains how to use and adjust the development safeguards installed 
 
 ## Keeping Things Fast
 - Prefer small PRs; analysis runs faster on fewer changes.
-- Frontend: cache via `actions/setup-node@v4` (npm cache).
+- Frontend: use `oven-sh/setup-bun` and `bun install` in CI.
 - Python: uv handles lockless, fast installs in CI via `astral-sh/setup-uv`.
 
 ## Upgrades
-- Update dev dependencies as usual (e.g., `npm i -D <pkg>@latest`).
+- Update dev dependencies as usual (e.g., `bun add -d <pkg>@latest`).
 - If you re-run the bootstrap in the future, it is idempotent and will merge rather than clobber.
 
 ---

@@ -9,10 +9,10 @@ SELF_DESTRUCT="${SELF_DESTRUCT:-0}"
 
 usage() {
   cat <<USAGE
-Usage: bootstrap.sh --type <frontend|python> [--pm npm|pnpm|yarn]
+Usage: bootstrap.sh --type <frontend|python> [--pm bun|pnpm|yarn]
 
 Env:
-  TYPE=frontend|python  PM=npm|pnpm|yarn  SELF_DESTRUCT=0|1
+  TYPE=frontend|python  PM=bun|pnpm|yarn  SELF_DESTRUCT=0|1
 USAGE
 }
 
