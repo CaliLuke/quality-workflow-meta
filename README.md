@@ -1,11 +1,12 @@
 # Quality Workflow Meta
 
-Opinionated bootstrap scripts to add guardrails (hooks, tests, metrics, CI) to a repo so humans and AI ship safer changes.
+Enforce complexity, linting, tests, and CI so AI-written code stays decoupled, tractable, and commit-blocked until quality gates pass.
 
 **Why?**
-- AIs and humans often skip safeguards under time pressure; complexity accumulates and breaks trust.
-- Repos diverge in style and checks, making changes risky and hard to review.
-- This meta-repo installs a minimal, reproducible baseline that forces quality early.
+- AI-generated code tends to be tightly coupled and overly complex, creating technical debt quickly.
+- As complexity grows, agents struggle to reason about the code and bugs become hard to troubleshoot.
+- Manually enforcing tests and linting fails in practice—agents routinely forget to run them.
+- This repo automates complexity, lint, and test gates via hooks and CI so the agent must fix issues before commit/push, keeping code manageable at any size.
 
 **Features**
 - Automated setup / self-destruct installer
@@ -75,6 +76,11 @@ Notes (from original README, clarified)
 ## Manual for AI
 
 This section defines exactly what an AI (or a human) should do before committing or pushing changes. It starts with a common install step, then provides stack-specific flows.
+
+Quick Navigation
+- [Common Setup (Install Bootstrap)](#common-setup-install-bootstrap)
+- [JavaScript/TypeScript](#javascripttypescript)
+- [Python](#python)
 
 ### Common Setup (Install Bootstrap)
 - Create a feature branch, then install the safeguards in your repo using one of:
