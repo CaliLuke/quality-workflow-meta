@@ -2,13 +2,32 @@
 
 Enforce complexity, linting, tests, and CI so AI-written code stays decoupled, tractable, and commit-blocked until quality gates pass.
 
-**Why?**
+## Table of Contents
+- [Quality Workflow Meta](#quality-workflow-meta)
+  - [Table of Contents](#table-of-contents)
+  - [Why?](#why)
+  - [Features](#features)
+  - [Installation](#installation)
+      - [Notes](#notes)
+  - [How It Works](#how-it-works)
+  - [Manual for AI](#manual-for-ai)
+    - [Common Setup (Install Bootstrap)](#common-setup-install-bootstrap)
+    - [Recommended AGENT.md Policy](#recommended-agentmd-policy)
+    - [JavaScript/TypeScript](#javascripttypescript)
+    - [Python](#python)
+  - [Configuration \& Thresholds](#configuration--thresholds)
+  - [Best Fit](#best-fit)
+  - [Troubleshooting](#troubleshooting)
+  - [Contributing](#contributing)
+  - [License](#license)
+
+## Why?
 - AI-generated code tends to be tightly coupled and overly complex, creating technical debt quickly.
 - As complexity grows, agents struggle to reason about the code and bugs become hard to troubleshoot.
 - Manually enforcing tests and linting fails in practice—agents routinely forget to run them.
 - This repo automates complexity, lint, and test gates via hooks and CI so the agent must fix issues before commit/push, keeping code manageable at any size.
 
-**Features**
+## Features
 - Automated setup / self-destruct installer
 - Code metrics and quality gates (FTA, ESLint complexity; xenon/radon for Python)
 - Tests must pass before commit/push (Husky or pre-commit enforced)
@@ -60,7 +79,8 @@ Alternatives
   - `bash docs/one-shot-installer.sh --type frontend --pm bun` (defaults to self-destruct)
   - `bash docs/one-shot-installer.sh --type python`
 
-Notes (from original README, clarified)
+#### Notes
+
 - Scripts are idempotent and won’t overwrite existing configs without cause.
 - Default setup excludes Storybook/Docker/backend docs sync; add them later if needed. (Note from original README)
 - Ephemeral mode removes the `bin/` installer after setup; the Safety Manual remains at `docs/safety-manual.md`.
@@ -77,11 +97,6 @@ Notes (from original README, clarified)
 
 This section defines exactly what an AI (or a human) should do before committing or pushing changes. It starts with a common install step, then provides stack-specific flows.
 
-Quick Navigation
-- [Common Setup (Install Bootstrap)](#common-setup-install-bootstrap)
-- [JavaScript/TypeScript](#javascripttypescript)
-- [Python](#python)
-
 ### Common Setup (Install Bootstrap)
 - Create a feature branch, then install the safeguards in your repo using one of:
 ```
@@ -93,6 +108,25 @@ bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-me
 ```
 - The installer is ephemeral by default (self-destructs) and leaves standard files (hooks/configs/scripts) plus `docs/safety-manual.md`.
 - After install, follow the appropriate stack section below.
+
+### Recommended AGENT.md Policy
+- In the target project, add an `AGENT.md` (or `Agent.md`) with the following working agreement to prevent “cheating” and skipped checks:
+
+```
+# Agent Working Agreement
+
+1. Never skip checks: do not run `git commit --no-verify`, set `HUSKY=0`, remove/alter hooks, or bypass CI without explicit human approval.
+2. Always run the full local gate before commit:
+   - JS/TS: `bun run complexity:json && bun scripts/check-fta-cap.mjs && bun run test`
+   - Python: `uv run scripts/python_verify.sh`
+3. When blocked by hooks or tests, stop and report:
+   - Paste the failing command and top relevant error output.
+   - Propose a fix and request confirmation if risky.
+4. Do not weaken thresholds or disable lint rules to pass:
+   - JS/TS: do not raise `FTA_HARD_CAP` or lower coverage thresholds without approval.
+   - Python: do not relax xenon flags or reduce coverage without approval.
+5. Keep changes small and incremental; re-run checks after each change.
+```
 
 ### JavaScript/TypeScript
 
