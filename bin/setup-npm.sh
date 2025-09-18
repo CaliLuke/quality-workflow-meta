@@ -40,7 +40,7 @@ NODE
 echo "[setup-npm] Add core devDependencies with bun (run install manually to avoid network during script authoring)."
 echo "[setup-npm] Suggested devDependencies (bun):"
 cat <<'DEPS'
-bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
+bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs \
   husky lint-staged vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom \
   typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 DEPS

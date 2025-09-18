@@ -4,3 +4,5 @@ auto-k-frontend/
 bin-local/
 auto-k-backend/
 AGENTS.md
+.bevel/
+.DS_Store

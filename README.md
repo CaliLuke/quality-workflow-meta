@@ -29,7 +29,7 @@ Enforce complexity, linting, tests, and CI so AI-written code stays decoupled, t
 
 ## Features
 - Automated setup / self-destruct installer
-- Code metrics and quality gates (FTA, ESLint complexity; xenon/radon for Python)
+- Code metrics and quality gates (FTA, ESLint + SonarJS cognitive complexity; xenon/radon for Python)
 - Tests must pass before commit/push (Husky or pre-commit enforced)
 - Leaves lightweight scripts and a Safety Manual under `docs/`
 - Supports JavaScript/TypeScript (Vite/Vitest) and Python (uv + pytest)
@@ -65,9 +65,9 @@ Alternatives
     - Ephemeral mode: `SELF_DESTRUCT=1 bash bin/bootstrap-frontend.sh`
     - Use a specific package manager: `PM=pnpm bash bin/bootstrap-frontend.sh`
     - Install dev dependencies (pick one):
-      - bun: `bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-      - pnpm: `pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-      - yarn: `yarn add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+      - bun: `bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+      - pnpm: `pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
+      - yarn: `yarn add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
     - Verify: `bun run verify`
   - Python:
     - `bash bin/bootstrap.sh --type python` (ephemeral via one‑shot above)
@@ -88,7 +88,7 @@ Alternatives
 
 ## How It Works
 - Runs once to scaffold configs, scripts, and hooks; leaves `docs/` and `scripts/` for ongoing use.
-- Frontend: installs Husky hooks (`.husky/pre-commit`, `.husky/pre-push`), ESLint, TypeScript, Vite, Vitest, and FTA complexity tools.
+- Frontend: installs Husky hooks (`.husky/pre-commit`, `.husky/pre-push`), ESLint (+ SonarJS), TypeScript, Vite, Vitest, and FTA complexity tools.
 - Python: writes `pyproject.toml`, `.pre-commit-config.yaml`, and CI; uses uv for tooling, pytest for tests, xenon/radon for complexity.
 - Enforces tests and metrics locally: commits re-run lint, typecheck, tests, and FTA checks; pre-push runs lint + typecheck.
 - CI mirrors local checks and uploads artifacts (coverage, analysis reports).
@@ -231,7 +231,7 @@ Related config files (Python)
 Frontend
 - FTA hard cap: `FTA_HARD_CAP` env var (default 50). Used by `scripts/check-fta-cap.mjs` and CI.
 - FTA delta percent: `FTA_DELTA_PCT` env var (default 10). Used by PR quality gate.
-- ESLint complexity rule: set in `eslint.config.js` (`complexity: ['error', 15]`).
+- ESLint complexity rules: in `eslint.config.js` set `complexity: ['error', 15]` and `sonarjs/cognitive-complexity: ['error', 15]`.
 - Coverage thresholds: edit `vitest.config.ts` under `test.coverage.thresholds` (lines, functions, branches, statements; defaults start low at 20% lines).
 
 Python

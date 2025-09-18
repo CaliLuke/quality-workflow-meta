@@ -37,7 +37,7 @@ This manual explains how to use and adjust the development safeguards installed 
     - Hard cap: set `FTA_HARD_CAP` (default `50`) in your CI vars or shell.
     - Delta threshold: set `FTA_DELTA_PCT` (default `10`).
     - Local pre-commit uses the hard cap via `scripts/check-fta-cap.mjs`.
-  - ESLint rule budget: `complexity` rule (in `eslint.config.js`) defaults to 15.
+  - ESLint rule budget: `complexity` and `sonarjs/cognitive-complexity` (in `eslint.config.js`) default to 15 each.
   - Pre-commit behavior: `.husky/pre-commit`. Temporary skip: `--no-verify`.
   - Quality gate: `.github/workflows/quality-gate.yml` compares only changed TS/TSX.
   - Vite dev proxy: set `DEV_BACKEND_URL` during `bun run dev`.

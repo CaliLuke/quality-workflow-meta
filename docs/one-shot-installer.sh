@@ -129,7 +129,7 @@ elif [ -f package.json ] || [ -f eslint.config.js ]; then
 
 Next steps (Frontend):
 - Install dev dependencies (bun):
-  bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh \
+  bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs \
     husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event \
     jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 - Verify:

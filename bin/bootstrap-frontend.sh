@@ -30,7 +30,7 @@ if [ ! -f docs/safety-manual.md ]; then
   cat > docs/safety-manual.md <<'MD'
 # Safety Manual
 
-See README “Getting Started” for commands. Adjust thresholds via env vars `FTA_HARD_CAP` and `FTA_DELTA_PCT`; change ESLint `complexity` rule in `eslint.config.js`. Skip hooks with `--no-verify` (use sparingly).
+See README “Getting Started” for commands. Adjust thresholds via env vars `FTA_HARD_CAP` and `FTA_DELTA_PCT`; change ESLint `complexity` and `sonarjs/cognitive-complexity` rules in `eslint.config.js`. Skip hooks with `--no-verify` (use sparingly).
 MD
 fi
 
