@@ -156,6 +156,8 @@ elif [ -f Cargo.toml ] && [ -f scripts/rust_verify.sh ]; then
 Next steps (Rust):
 - Ensure toolchain components:
   rustup component add clippy rustfmt
+- Install cargo-machete (recommended):
+  cargo install --locked cargo-machete
 - Install cargo-audit (optional but recommended):
   cargo install --locked cargo-audit
 - Install hooks:

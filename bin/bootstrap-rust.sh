@@ -85,10 +85,27 @@ repos:
         entry: bash -c 'command -v cargo-audit >/dev/null 2>&1 && [ -f Cargo.lock ] && cargo audit || echo "[pre-commit] Skipping cargo audit (install cargo-audit and ensure Cargo.lock exists)."'
         language: system
         pass_filenames: false
+  - repo: https://github.com/bnjbvr/cargo-machete
+    rev: main
+    hooks:
+      - id: cargo-machete
 YML
   echo "[bootstrap-rust] Wrote .pre-commit-config.yaml"
 else
-  echo "[bootstrap-rust] .pre-commit-config.yaml exists; consider adding cargo fmt/clippy/test hooks manually."
+  echo "[bootstrap-rust] .pre-commit-config.yaml exists; ensuring cargo-machete hook is present."
+  if ! grep -q 'id: cargo-machete' .pre-commit-config.yaml 2>/dev/null; then
+    cat >> .pre-commit-config.yaml <<'YML'
+
+# Added by bootstrap-rust: unused dependency check
+- repo: https://github.com/bnjbvr/cargo-machete
+  rev: main
+  hooks:
+    - id: cargo-machete
+YML
+    echo "[bootstrap-rust] Appended cargo-machete pre-commit hook."
+  else
+    echo "[bootstrap-rust] cargo-machete hook already configured."
+  fi
 fi
 
 mkdir -p scripts
@@ -221,7 +238,7 @@ if [ ! -f docs/safety-manuals/safety-manual-rust.md ]; then
 This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo-audit step, and matching GitHub Actions workflows.
 
 ## Installed Safeguards
-- Pre-commit hooks run `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`, and optionally `cargo audit` when installed.
+- Pre-commit hooks run `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`, an optional `cargo audit`, and `cargo machete` for unused dependency checks.
 - Workspace scaffolds include starter unit and integration tests to keep the verify script green.
 - GitHub Actions workflow (`.github/workflows/ci-rust.yml`) executes fmt, clippy, test, doc, and audit steps.
 
@@ -237,6 +254,12 @@ This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo
 - Audit gate: install `cargo-audit` locally and in CI to enforce vulnerability checks, or remove the hook step if managed elsewhere.
 - Test discovery: the verify script fails when `cargo test -- --list` finds no tests; keep at least one unit or integration test on disk.
 - Documentation build: remove or tweak the `cargo doc --no-deps` step if your project cannot generate docs.
+
+### Unused Dependencies (cargo-machete)
+- Install once: `cargo install --locked cargo-machete`
+- Pre-commit runs `cargo machete` and fails if unused dependencies are detected (exit code 1).
+- False positives: configure ignores/renames via `package.metadata.cargo-machete` or `workspace.metadata.cargo-machete` in `Cargo.toml`.
+- More accuracy: pass `--with-metadata` locally if needed (may update `Cargo.lock`).
 
 ## Disabling or Removing
 - Temporary hook skip: `SKIP=cargo-fmt cargo-clippy cargo-test cargo-audit pre-commit run --all-files` (document skips).
@@ -317,6 +340,11 @@ if command -v pre-commit >/dev/null 2>&1; then
   echo "[bootstrap-rust] Pre-commit hooks installed."
 else
   echo "[bootstrap-rust] 'pre-commit' not found. Install via pipx, uv, or Homebrew then run: pre-commit install"
+fi
+
+# Friendly reminder to enable machete unused-deps checks
+if ! command -v cargo-machete >/dev/null 2>&1; then
+  echo "[bootstrap-rust] Tip: install cargo-machete for unused dependency checks: 'cargo install --locked cargo-machete'"
 fi
 
 # Summary of created/updated paths

@@ -18,6 +18,7 @@ bash bin/bootstrap.sh --type rust
 
 ```
 rustup component add clippy rustfmt
+cargo install --locked cargo-machete  # unused-deps pre-commit hook
 pre-commit install
 ./scripts/rust_verify.sh
 ```
