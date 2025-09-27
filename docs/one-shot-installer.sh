@@ -20,7 +20,7 @@ Options:
   --repo <url>        Source repo for bootstrap scripts (default: ${REPO_URL})
   --ref <git-ref>     Git ref/branch/tag to use         (default: ${REPO_REF})
   --pm <bun|pnpm|yarn> Package manager to assume         (default: auto-detect)
-  --type <frontend|python> Select installer path         (default: frontend)
+  --type <frontend|python|rust> Select installer path    (default: frontend)
   --keep              Do NOT self-destruct install scripts after setup
   -h, --help          Show this help
 
@@ -45,9 +45,9 @@ done
 
 # Validate type early for clearer feedback
 case "$TYPE_FLAG" in
-  frontend|python) ;;
+  frontend|python|rust) ;;
   *)
-    echo "[one-shot] Unsupported --type: '$TYPE_FLAG'. Use 'frontend' or 'python'." >&2
+    echo "[one-shot] Unsupported --type: '$TYPE_FLAG'. Use 'frontend', 'python', or 'rust'." >&2
     exit 2
     ;;
 esac
@@ -73,6 +73,9 @@ echo "[one-shot] Running bootstrap (ephemeral=${SELF_DESTRUCT})..."
 if [ "$TYPE_FLAG" = "python" ]; then
   echo "[one-shot] Selected type=python"
   env $PM_ENV $SD_ENV TYPE=python bash ./bin/bootstrap.sh --type python
+elif [ "$TYPE_FLAG" = "rust" ]; then
+  echo "[one-shot] Selected type=rust"
+  env $PM_ENV $SD_ENV TYPE=rust bash ./bin/bootstrap.sh --type rust
 else
   echo "[one-shot] Selected type=frontend"
   env $PM_ENV $SD_ENV TYPE=frontend bash ./bin/bootstrap.sh --type frontend
@@ -94,6 +97,15 @@ if [ "$TYPE_FLAG" = "python" ]; then
   done
   if [ $missing -eq 1 ]; then
     echo "[one-shot] Warning: Some Python artifacts were not found. Check the logs above or re-run with --keep to inspect bin/." >&2
+  fi
+elif [ "$TYPE_FLAG" = "rust" ]; then
+  echo "[one-shot] Verifying Rust bootstrap artifacts..."
+  missing=0
+  for f in Cargo.toml scripts/rust_verify.sh .github/workflows/ci-rust.yml; do
+    if [ ! -f "$f" ]; then echo "[one-shot] Missing: $f"; missing=1; fi
+  done
+  if [ $missing -eq 1 ]; then
+    echo "[one-shot] Warning: Some Rust artifacts were not found. Check the logs above or re-run with --keep to inspect bin/." >&2
   fi
 else
   echo "[one-shot] Verifying Frontend bootstrap artifacts..."
@@ -119,7 +131,7 @@ Next steps (Python):
   uv run pre-commit install
 - Verify locally:
   uv run scripts/python_verify.sh
-- Adjust safeties: see docs/safety-manual.md (should now exist)
+  - Adjust safeties: see docs/safety-manuals/safety-manual-python.md (should now exist)
   - Also review: pyproject.toml, .pre-commit-config.yaml, .github/workflows/ci-python.yml
 EON
 elif [ -f package.json ] || [ -f eslint.config.js ]; then
@@ -134,7 +146,24 @@ Next steps (Frontend):
     jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli
 - Verify:
   bun run verify
-- Adjust safeties: see docs/safety-manual.md (should now exist)
+  - Adjust safeties: see docs/safety-manuals/safety-manual-javascript.md (should now exist)
+EON
+elif [ -f Cargo.toml ] && [ -f scripts/rust_verify.sh ]; then
+  cat <<'EON'
+
+[one-shot] Done.
+
+Next steps (Rust):
+- Ensure toolchain components:
+  rustup component add clippy rustfmt
+- Install cargo-audit (optional but recommended):
+  cargo install --locked cargo-audit
+- Install hooks:
+  pre-commit install
+- Verify locally:
+  ./scripts/rust_verify.sh
+  - Adjust safeties: see docs/safety-manuals/safety-manual-rust.md (should now exist)
+  - Also review: Cargo.toml, .pre-commit-config.yaml, .github/workflows/ci-rust.yml
 EON
 else
   cat <<'EON'
@@ -142,7 +171,7 @@ else
 [one-shot] Done.
 
 Next steps:
-- Review docs/safety-manual.md
+- Review the stack-specific manual under `docs/`
 - Confirm expected files were created (Python or Frontend stack). Re-run with the desired --type if needed.
 EON
 fi

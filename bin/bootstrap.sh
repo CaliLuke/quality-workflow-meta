@@ -9,10 +9,10 @@ SELF_DESTRUCT="${SELF_DESTRUCT:-0}"
 
 usage() {
   cat <<USAGE
-Usage: bootstrap.sh --type <frontend|python> [--pm bun|pnpm|yarn]
+Usage: bootstrap.sh --type <frontend|python|rust> [--pm bun|pnpm|yarn]
 
 Env:
-  TYPE=frontend|python  PM=bun|pnpm|yarn  SELF_DESTRUCT=0|1
+  TYPE=frontend|python|rust  PM=bun|pnpm|yarn  SELF_DESTRUCT=0|1
 USAGE
 }
 
@@ -26,7 +26,7 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$TYPE" ]; then
-  echo "[bootstrap] Missing --type. Use frontend or python." >&2
+  echo "[bootstrap] Missing --type. Use frontend, python, or rust." >&2
   usage; exit 2
 fi
 
@@ -36,6 +36,9 @@ case "$TYPE" in
     ;;
   python)
     exec bash "$(dirname "$0")/bootstrap-python.sh"
+    ;;
+  rust)
+    exec bash "$(dirname "$0")/bootstrap-rust.sh"
     ;;
   *)
     echo "[bootstrap] Unknown type: $TYPE" >&2

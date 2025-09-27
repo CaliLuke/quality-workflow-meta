@@ -11,10 +11,8 @@ Enforce complexity, linting, tests, and CI so AI-written code stays decoupled, t
       - [Notes](#notes)
   - [How It Works](#how-it-works)
   - [Manual for AI](#manual-for-ai)
-    - [Common Setup (Install Bootstrap)](#common-setup-install-bootstrap)
-    - [Recommended AGENT.md Policy](#recommended-agentmd-policy)
-    - [JavaScript/TypeScript](#javascripttypescript)
-    - [Python](#python)
+    - [Agents.md](#agentsmd)
+    - [JavaScript/TypeScript, Python, Rust](#javascripttypescript-python-rust)
   - [Configuration \& Thresholds](#configuration--thresholds)
   - [Best Fit](#best-fit)
   - [Troubleshooting](#troubleshooting)
@@ -32,58 +30,20 @@ Enforce complexity, linting, tests, and CI so AI-written code stays decoupled, t
 - Code metrics and quality gates (FTA, ESLint + SonarJS cognitive complexity; xenon/radon for Python)
 - Tests must pass before commit/push (Husky or pre-commit enforced)
 - Leaves lightweight scripts and a Safety Manual under `docs/`
-- Supports JavaScript/TypeScript (Vite/Vitest) and Python (uv + pytest)
+- Supports JavaScript/TypeScript (Vite/Vitest), Python (uv + pytest), and Rust (cargo fmt/clippy/test)
 
 ## Installation
 
-Quick start (one-shot, no checkout):
-
-```
-# Frontend
-bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type frontend --pm bun
-
-# Python
-bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type python
-```
-
-What happens
-- Copies `bin/` installer into your repo, runs the selected bootstrap, and (by default) self-destructs the installer.
-- Adds Git hooks and baseline configs; scaffolds CI workflows under `.github/workflows/`.
-- Writes docs and analysis helpers under `docs/` and `scripts/`.
-- Safe to revert: changes are standard files; remove or edit as needed.
-
-Suggested workflow
-- Create a feature branch.
-- Run the installer (one-shot or local `bin/`).
-- Review diffs, run local checks, and commit.
-- Merge or delete the branch if undesired.
-
-Alternatives
-- Run from a local checkout of this repo:
-  - Frontend (TypeScript/React):
-    - `bash bin/bootstrap-frontend.sh`
-    - Ephemeral mode: `SELF_DESTRUCT=1 bash bin/bootstrap-frontend.sh`
-    - Use a specific package manager: `PM=pnpm bash bin/bootstrap-frontend.sh`
-    - Install dev dependencies (pick one):
-      - bun: `bun add -d eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-      - pnpm: `pnpm add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-      - yarn: `yarn add -D eslint @eslint/js typescript-eslint eslint-plugin-react-hooks eslint-plugin-react-refresh eslint-plugin-sonarjs husky lint-staged vitest @testing-library/react @testing-library/jest-dom @testing-library/user-event jsdom typescript vite @vitejs/plugin-react-swc vite-plugin-checker fta-cli`
-    - Verify: `bun run verify`
-  - Python:
-    - `bash bin/bootstrap.sh --type python` (ephemeral via one‑shot above)
-    - Sync dev tools (uv): `uv sync --all-groups`
-    - Enable hooks: `uv run pre-commit install`
-    - Verify: `uv run scripts/python_verify.sh`
-    - Reports: `uv run scripts/python_reports.sh` (coverage.xml, `htmlcov/`, `docs/analysis/*`)
-- Or copy `docs/one-shot-installer.sh` into your project and run:
-  - `bash docs/one-shot-installer.sh --type frontend --pm bun` (defaults to self-destruct)
-  - `bash docs/one-shot-installer.sh --type python`
+See the docs for stack-specific installation and run instructions:
+- JavaScript/TypeScript: `docs/install-javascript.md`
+- Python: `docs/install-python.md`
+- Rust: `docs/install-rust.md`
 
 #### Notes
 
 - Scripts are idempotent and won’t overwrite existing configs without cause.
 - Default setup excludes Storybook/Docker/backend docs sync; add them later if needed. (Note from original README)
-- Ephemeral mode removes the `bin/` installer after setup; the Safety Manual remains at `docs/safety-manual.md`.
+- Ephemeral mode removes the `bin/` installer after setup; the stack-specific Safety Manual remains under `docs/safety-manuals/` (for example `docs/safety-manuals/safety-manual-python.md`).
 - Security: Always review install scripts before piping to `bash`.
 
 ## How It Works
@@ -95,136 +55,21 @@ Alternatives
 
 ## Manual for AI
 
-This section defines exactly what an AI (or a human) should do before committing or pushing changes. It starts with a common install step, then provides stack-specific flows.
+After installing, follow the stack guides for daily commands and gates:
+- JavaScript/TypeScript: `docs/safety-manuals/safety-manual-javascript.md`
+- Python: `docs/safety-manuals/safety-manual-python.md`
+- Rust: `docs/safety-manuals/safety-manual-rust.md`
 
-### Common Setup (Install Bootstrap)
-- Create a feature branch, then install the safeguards in your repo using one of:
-```
-# Frontend (JavaScript/TypeScript)
-bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type frontend --pm bun
+### Agents.md
+- The installer will create or update `Agents.md` in your repo root with the relevant working agreement.
+- The per-language agent working agreements also live in `docs/`:
+  - JavaScript/TypeScript: `docs/agents-md/Agents-javascript.md`
+  - Python: `docs/agents-md/Agents-python.md`
+  - Rust: `docs/agents-md/Agents-rust.md`
+  Use these as your project’s Agents.md baseline (copy to your repo root if desired).
 
-# Python
-bash <(curl -fsSL https://raw.githubusercontent.com/CaliLuke/quality-workflow-meta/main/docs/one-shot-installer.sh) --type python
-```
-- The installer is ephemeral by default (self-destructs) and leaves standard files (hooks/configs/scripts) plus `docs/safety-manual.md`.
-- After install, follow the appropriate stack section below.
-
-### Recommended AGENT.md Policy
-- In the target project, add an `AGENT.md` (or `Agent.md`) with the following working agreement to prevent “cheating” and skipped checks:
-
-```
-# Agent Working Agreement
-
-1. Never skip checks: do not run `git commit --no-verify`, set `HUSKY=0`, remove/alter hooks, or bypass CI without explicit human approval.
-2. Always run the full local gate before commit:
-   - JS/TS: `bun run complexity:json && bun scripts/check-fta-cap.mjs && bun run test`
-   - Python: `uv run scripts/python_verify.sh`
-3. When blocked by hooks or tests, stop and report:
-   - Paste the failing command and top relevant error output.
-   - Propose a fix and request confirmation if risky.
-4. Do not weaken thresholds or disable lint rules to pass:
-   - JS/TS: do not raise `FTA_HARD_CAP` or lower coverage thresholds without approval.
-   - Python: do not relax xenon flags or reduce coverage without approval.
-5. Keep changes small and incremental; re-run checks after each change.
-```
-
-### JavaScript/TypeScript
-
-Prerequisites
-- Node.js 20+ and a package manager (bun/pnpm/yarn). Install Bun v1+.
-
-Steps
-1) Run metrics
-```
-bun run complexity:json
-bun scripts/check-fta-cap.mjs
-```
-Pass/Fail
-- Pass: proceed to tests. Output includes `[FTA] All files under cap (X).`
-- Fail: commit blocked by complexity. Report: `FTA hard cap exceeded` and list offending files from `scripts/check-fta-cap.mjs`. Suggest refactoring or lowering complexity before continuing.
-
-2) Run tests
-```
-bun run test
-```
-Pass/Fail
-- Pass: proceed to commit.
-- Fail: report which tests failed (Vitest output). Do not commit until passing.
-
-3) Commit (hook rechecks)
-```
-git add -A
-git commit -m "<message>"
-```
-Hook behavior
-- Pre-commit runs: lint-staged → typecheck → tests → FTA cap. If no tests exist, commit fails with: `No test files found (e.g., src/**/*.test.ts). Add at least one test before committing.`
-- On FTA failure, commit fails with offending files and scores.
-
-4) Pre-push checks
-```
-bun run lint
-bun run typecheck
-```
-
-5) Push
-```
-git push
-```
-
-If your project uses different scripts, run them in the analogous step. For example, replace `bun run test` with your project’s test command. (Clarify: do not invent scripts; use actual ones in your repo.)
-
-Related config files (JS/TS)
-- `eslint.config.js`, `vitest.config.ts`, `.husky/*`, `scripts/check-fta-cap.mjs`, `scripts/compare-fta.mjs`, `scripts/generate-complexity-report.mjs`.
-
-### Python
-
-Prerequisites
-- Python 3.11+ recommended.
-- Install uv (https://docs.astral.sh/uv/):
-  - macOS (Homebrew): `brew install uv`
-  - Linux/macOS (official): `curl -LsSf https://astral.sh/uv/install.sh | sh`
-  - Verify: `uv --version`
-
-Steps
-1) Run metrics (and reports)
-```
-uv sync --all-groups
-uv run scripts/python_reports.sh
-```
-Pass/Fail
-- Non-blocking reports write to: `coverage.xml`, `htmlcov/`, `docs/analysis/*.txt`. For a blocking gate locally, run the verify script (next step).
-
-2) Run tests and gates
-```
-uv run scripts/python_verify.sh
-```
-What it does
-- Ensures at least one pytest file exists; otherwise exits with: `[verify:py] No pytest files found (e.g., tests/test_example.py). Add tests before committing.`
-- Runs ruff, black (check), isort (check-only), mypy, pytest, radon cc (non-blocking), and xenon (blocking complexity gate `--max-absolute B --max-modules B --max-average B`).
-Pass/Fail
-- Pass: proceed to commit.
-- Fail: report the first failing tool and its output; do not commit.
-
-3) Commit (hooks)
-```
-git add -A
-git commit -m "<message>"
-```
-Hook behavior
-- After `uv run pre-commit install`, pre-commit enforces ruff/black/isort/mypy and a test-existence check on commit.
-
-4) Pre-push checks (optional but recommended)
-```
-uv run scripts/python_verify.sh
-```
-
-5) Push
-```
-git push
-```
-
-Related config files (Python)
-- `pyproject.toml`, `.pre-commit-config.yaml`, `scripts/python_verify.sh`, `scripts/python_reports.sh`.
+### JavaScript/TypeScript, Python, Rust
+For detailed runbooks (commands, gates, CI), use the stack-specific Safety Manuals listed above.
 
 ## Configuration & Thresholds
 
@@ -238,6 +83,12 @@ Python
 - Xenon thresholds: adjust flags in `scripts/python_verify.sh` and `.github/workflows/ci-python.yml` (e.g., `--max-absolute B`).
 - Coverage threshold: in `pyproject.toml` under `[tool.pytest.ini_options].addopts` (`--cov-fail-under=20`). Ratchet up over time.
 - Lint/format/type: tune `[tool.ruff.*]`, `[tool.black]`, `[tool.isort]`, `[tool.mypy]` in `pyproject.toml`.
+
+Rust
+- Clippy strictness: edit the command in `scripts/rust_verify.sh` and `.github/workflows/ci-rust.yml` (e.g., drop `--all-features` if unused or add denial lints).
+- Audit requirements: install `cargo-audit` locally/CI to enforce vulnerability checks, or remove the hook/CI step if handled elsewhere.
+- Test discovery guard: `scripts/rust_verify.sh` fails when `cargo test -- --list` finds no tests—keep at least one unit or integration test.
+- Documentation build: adjust or remove the `cargo doc --no-deps` step if your workspace cannot build docs.
 
 Example changes
 - Increase FTA hard cap temporarily for a branch:

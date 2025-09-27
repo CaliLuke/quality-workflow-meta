@@ -237,31 +237,98 @@ echo "[bootstrap-python] Wrote .github/workflows/ci-python.yml"
 fi
 
 # Manual (ensure docs exist and always create a base manual if missing)
-mkdir -p docs
-if [ ! -f docs/safety-manual.md ]; then
-  cat > docs/safety-manual.md << 'BASE'
-# Safety Manual
+mkdir -p docs/safety-manuals
+if [ ! -f docs/safety-manuals/safety-manual-python.md ]; then
+  cat > docs/safety-manuals/safety-manual-python.md <<'MD'
+# Safety Manual (Python)
 
-This manual explains how to use and adjust the development safeguards installed
-by the bootstrap. It remains after the installer self-destructs.
+This project is bootstrapped with uv-based tooling, strict linters, pytest, and xenon complexity gates. These safeguards block commits when style, type, or test requirements fail.
+
+## Installed Safeguards
+- Pre-commit runs ruff (lint + format), black, isort, mypy, and a custom test-existence check.
+- Pytest with coverage, radon complexity reports, and xenon blocking thresholds.
+- GitHub Actions workflow (`.github/workflows/ci-python.yml`) mirrors the local gate and uploads analysis artifacts.
 
 ## Common Commands
-- Lint: `ruff check .` (Python) / `bun run lint` (Frontend)
-- Typecheck: `mypy .` (Python) / `bun run typecheck` (Frontend)
-- Tests: `pytest` (Python) / `bun run test` (Frontend)
-BASE
+- Sync dev tools: `uv sync --all-groups`
+- Install hooks: `uv run pre-commit install`
+- Full verify: `uv run scripts/python_verify.sh`
+- Generate reports: `uv run scripts/python_reports.sh`
+
+## Adjusting Safeguards
+- Xenon thresholds: edit flags in `scripts/python_verify.sh` and `.github/workflows/ci-python.yml` (defaults `--max-absolute B --max-modules B --max-average B`).
+- Coverage gate: raise `--cov-fail-under` inside `pyproject.toml` under `[tool.pytest.ini_options].addopts`.
+- Ruff/black/isort: tune `[tool.ruff.lint]`, `[tool.black]`, and `[tool.isort]` in `pyproject.toml`.
+- Mypy strictness: adjust `[tool.mypy]` as needed.
+
+## Disabling or Removing
+- Temporary hook skip: `SKIP=ruff black isort mypy` when running `pre-commit run`; document any skips.
+- Remove hooks: delete `.pre-commit-config.yaml`, run `pre-commit uninstall`, and clean the `.git/hooks/` entries.
+- Remove CI: delete `.github/workflows/ci-python.yml`.
+
+## Keeping It Fast
+- Use uv for locked dependency resolution in CI and local runs.
+- Cache `.venv` or uv caches in CI for quicker installs.
+
+## Upgrades
+- Update tool versions under `[dependency-groups].dev` in `pyproject.toml` then run `uv sync --all-groups`.
+- Re-run the bootstrap when new safeguards ship; scripts are idempotent and preserve manual edits.
+MD
 fi
 
-if ! grep -q "^## Python Variant" docs/safety-manual.md 2>/dev/null; then
-  cat >> docs/safety-manual.md << 'MD'
+# Ensure Agents.md exists or append Python agreement if present already
+DEST="Agents.md"; if [ -f AGENTS.md ] && [ ! -f "$DEST" ]; then DEST="AGENTS.md"; fi
+PY_HEADER="# Agents.md (Python)"
+if [ ! -f "$DEST" ]; then
+  cat > "$DEST" <<'AG'
+# Agents.md (Python)
 
-## Python Variant
-- Install dev tools: `uv sync --all-groups`
-- Enable hooks: `uv run pre-commit install`
-- Verify locally: `uv run scripts/python_verify.sh`
-- Adjust complexity thresholds: tweak xenon flags (e.g., `--max-absolute B`).
-- CI: `.github/workflows/ci-python.yml` runs lint, typecheck, tests, and xenon gate.
-MD
+Use this working agreement to guide agent behavior in Python repos.
+
+## Agent Working Agreement
+1. Never skip checks
+   - Do not run `git commit --no-verify`, remove/alter hooks, or bypass CI without explicit human approval.
+2. Always run the full local gate before commit
+   - `uv run scripts/python_verify.sh`
+3. When blocked by hooks or tests, stop and report
+   - Paste the failing command and the top relevant error output.
+   - Propose a fix and request confirmation if risky.
+4. Do not weaken thresholds or disable lint rules to pass
+   - Do not relax xenon flags or reduce coverage without approval.
+   - Do not comment out tests to increase pass rate.
+5. Keep changes small and incremental
+   - Re-run checks after each change; prefer short, reviewable diffs.
+
+Related docs: `docs/safety-manuals/safety-manual-python.md`
+AG
+  echo "[bootstrap-python] Wrote $DEST (Python policy)"
+else
+  if ! grep -q "^# Agents.md (Python)" "$DEST" 2>/dev/null; then
+    printf '\n\n%s\n' "$PY_HEADER" >> "$DEST"
+    cat >> "$DEST" <<'AG'
+
+Use this working agreement to guide agent behavior in Python repos.
+
+## Agent Working Agreement
+1. Never skip checks
+   - Do not run `git commit --no-verify`, remove/alter hooks, or bypass CI without explicit human approval.
+2. Always run the full local gate before commit
+   - `uv run scripts/python_verify.sh`
+3. When blocked by hooks or tests, stop and report
+   - Paste the failing command and the top relevant error output.
+   - Propose a fix and request confirmation if risky.
+4. Do not weaken thresholds or disable lint rules to pass
+   - Do not relax xenon flags or reduce coverage without approval.
+   - Do not comment out tests to increase pass rate.
+5. Keep changes small and incremental
+   - Re-run checks after each change; prefer short, reviewable diffs.
+
+Related docs: `docs/safety-manuals/safety-manual-python.md`
+AG
+    echo "[bootstrap-python] Appended Python policy to $DEST"
+  else
+    echo "[bootstrap-python] $DEST already contains Python policy; leaving as-is."
+  fi
 fi
 
 echo "[bootstrap-python] Complete. Next: 'uv sync --all-groups' && 'uv run pre-commit install' && 'uv run scripts/python_verify.sh'"
@@ -289,4 +356,5 @@ printf '%s\n' \
   '  - scripts/python_verify.sh' \
   '  - scripts/python_reports.sh' \
   '  - .github/workflows/ci-python.yml' \
-  '  - docs/safety-manual.md'
+  '  - docs/safety-manuals/safety-manual-python.md' \
+  '  - Agents.md (created/updated)'
