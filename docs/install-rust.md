@@ -18,8 +18,10 @@ bash bin/bootstrap.sh --type rust
 
 ```
 rustup component add clippy rustfmt
+# Install hook runner (Rust-native):
+brew install prek    # or: uv tool install prek  |  cargo install --locked --git https://github.com/j178/prek
 cargo install --locked cargo-machete  # unused-deps pre-commit hook
-pre-commit install
+prek install
 ./scripts/rust_verify.sh
 ```
 

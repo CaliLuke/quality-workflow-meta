@@ -158,10 +158,12 @@ Next steps (Rust):
   rustup component add clippy rustfmt
 - Install cargo-machete (recommended):
   cargo install --locked cargo-machete
+- Install hook runner (Rust-native, required for hooks):
+  brew install prek    # or: uv tool install prek  |  cargo install --locked --git https://github.com/j178/prek
 - Install cargo-audit (optional but recommended):
   cargo install --locked cargo-audit
 - Install hooks:
-  pre-commit install
+  prek install
 - Verify locally:
   ./scripts/rust_verify.sh
   - Adjust safeties: see docs/safety-manuals/safety-manual-rust.md (should now exist)

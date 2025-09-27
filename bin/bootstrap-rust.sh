@@ -262,8 +262,8 @@ This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo
 - More accuracy: pass `--with-metadata` locally if needed (may update `Cargo.lock`).
 
 ## Disabling or Removing
-- Temporary hook skip: `SKIP=cargo-fmt cargo-clippy cargo-test cargo-audit pre-commit run --all-files` (document skips).
-- Remove hooks: delete `.pre-commit-config.yaml` and uninstall hooks with `pre-commit uninstall`.
+- Temporary hook skip: `SKIP=cargo-fmt cargo-clippy cargo-test cargo-audit cargo-machete prek run --all-files` (document skips).
+- Remove hooks: delete `.pre-commit-config.yaml` and remove installed Git hook(s) if needed.
 - Remove CI: delete `.github/workflows/ci-rust.yml` and related steps.
 
 ## Keeping It Fast
@@ -331,15 +331,15 @@ AG
   fi
 fi
 
-echo "[bootstrap-rust] Complete. Next: 'rustup component add clippy rustfmt' && './scripts/rust_verify.sh'"
+echo "[bootstrap-rust] Complete. Next: 'rustup component add clippy rustfmt' && 'prek install' && './scripts/rust_verify.sh'"
 
-if command -v pre-commit >/dev/null 2>&1; then
-  echo "[bootstrap-rust] Installing pre-commit hooks..."
-  pre-commit install || true
-  pre-commit install --hook-type commit-msg || true
-  echo "[bootstrap-rust] Pre-commit hooks installed."
+if command -v prek >/dev/null 2>&1; then
+  echo "[bootstrap-rust] Installing git hooks via prek..."
+  prek install || true
+  echo "[bootstrap-rust] Hooks installed with prek."
 else
-  echo "[bootstrap-rust] 'pre-commit' not found. Install via pipx, uv, or Homebrew then run: pre-commit install"
+  echo "[bootstrap-rust] 'prek' not found. Install it and then run: 'prek install'"
+  echo "[bootstrap-rust] Install options: brew install prek | uv tool install prek | cargo install --locked --git https://github.com/j178/prek"
 fi
 
 # Friendly reminder to enable machete unused-deps checks
