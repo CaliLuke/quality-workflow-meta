@@ -162,6 +162,9 @@ Next steps (Rust):
   brew install prek    # or: uv tool install prek  |  cargo install --locked --git https://github.com/j178/prek
 - Install cargo-audit (optional but recommended):
   cargo install --locked cargo-audit
+- Enable coverage tooling:
+  rustup component add llvm-tools-preview
+  cargo install cargo-llvm-cov
 - Install hooks:
   prek install
 - Verify locally:

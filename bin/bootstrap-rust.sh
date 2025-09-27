@@ -28,6 +28,11 @@ fi
 mkdir -p src
 if [ ! -f src/lib.rs ]; then
   cat > src/lib.rs <<'RS'
+//! Crate-level docs: describe your crate here.
+#![deny(missing_docs, rustdoc::missing_crate_level_docs)]
+#![warn(clippy::missing_panics_doc, clippy::missing_errors_doc, clippy::missing_safety_doc)]
+
+/// Adds two integers and returns the sum.
 pub fn add(left: i32, right: i32) -> i32 {
     left + right
 }
@@ -57,6 +62,18 @@ fn smoke() {
 }
 RS
   echo "[bootstrap-rust] Added tests/smoke.rs"
+fi
+
+# Clippy configuration for complexity budgets (idempotent)
+if [ ! -f clippy.toml ]; then
+  cat > clippy.toml <<'TOML'
+# Maximum allowed cognitive complexity per function before clippy warns.
+cognitive-complexity-threshold = 25
+
+# Consider warning on functions with too many arguments (default 7).
+too-many-arguments-threshold = 7
+TOML
+  echo "[bootstrap-rust] Wrote clippy.toml (complexity thresholds)"
 fi
 
 # Setup pre-commit hooks (local hooks hitting cargo tools) if not already defined.
@@ -138,6 +155,22 @@ cargo clippy --workspace --all-targets --all-features -- -D warnings
 echo "[verify:rs] cargo test --workspace --all-features"
 cargo test --workspace --all-features
 
+# Coverage (source-based via cargo-llvm-cov) with a low starting threshold
+MIN_COV="${COVERAGE_MIN:-20}"
+if command -v rustup >/dev/null 2>&1; then
+  rustup component add llvm-tools-preview >/dev/null 2>&1 || true
+fi
+if ! command -v cargo-llvm-cov >/dev/null 2>&1; then
+  echo "[verify:rs] Installing cargo-llvm-cov (once)..."
+  cargo install cargo-llvm-cov >/dev/null 2>&1 || true
+fi
+if command -v cargo-llvm-cov >/dev/null 2>&1; then
+  echo "[verify:rs] cargo llvm-cov --fail-under-lines=${MIN_COV} (lcov to coverage.lcov)"
+  cargo llvm-cov --workspace --all-features --fail-under-lines="${MIN_COV}" --no-fail-fast --lcov --output-path coverage.lcov
+else
+  echo "[verify:rs] Skipping coverage (cargo-llvm-cov not installed). Install with 'cargo install cargo-llvm-cov' to enable gating."
+fi
+
 if command -v cargo-audit >/dev/null 2>&1 && [ -f Cargo.lock ]; then
   echo "[verify:rs] cargo audit"
   cargo audit
@@ -178,6 +211,16 @@ fi
 echo "[reports:rs] cargo doc --workspace --all-features --no-deps"
 cargo doc --workspace --all-features --no-deps || true
 
+# Coverage reports (if available)
+if command -v rustup >/dev/null 2>&1; then
+  rustup component add llvm-tools-preview >/dev/null 2>&1 || true
+fi
+if command -v cargo-llvm-cov >/dev/null 2>&1; then
+  echo "[reports:rs] cargo llvm-cov (html + lcov) → target/llvm-cov + docs/analysis/lcov.info"
+  mkdir -p docs/analysis
+  cargo llvm-cov --workspace --all-features --no-fail-fast --html --lcov --output-path docs/analysis/lcov.info || true
+fi
+
 echo "[reports:rs] Done. See docs/analysis and target/doc."
 SH
   chmod +x scripts/rust_reports.sh
@@ -207,8 +250,21 @@ jobs:
         run: cargo fmt --all -- --check
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
-      - name: cargo test
-        run: cargo test --workspace --all-features
+      - name: Install coverage tool
+        run: |
+          rustup component add llvm-tools-preview
+          cargo install cargo-llvm-cov
+      - name: Coverage (llvm-cov)
+        run: |
+          cargo llvm-cov --workspace --all-features --fail-under-lines=20 --no-fail-fast --html --lcov --output-path lcov.info
+      - name: Upload coverage artifacts
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: |
+            lcov.info
+            target/llvm-cov/**
       - name: cargo doc
         run: cargo doc --workspace --all-features --no-deps
       - name: cargo audit (optional)

@@ -3,9 +3,9 @@
 This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo-audit step, and matching GitHub Actions workflows.
 
 ## Installed Safeguards
-- Pre-commit hooks run `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test`, and optionally `cargo audit` when installed.
+- Pre-commit hooks (via `prek`) run `cargo fmt --check`, `cargo clippy -- -D warnings` (with cognitive complexity budget), `cargo test`, optional `cargo audit`, and `cargo machete` for unused dependency checks.
 - Workspace scaffolds include starter unit and integration tests to keep the verify script green.
-- GitHub Actions workflow (`.github/workflows/ci-rust.yml`) executes fmt, clippy, test, doc, and audit steps.
+- GitHub Actions workflow (`.github/workflows/ci-rust.yml`) executes fmt, clippy, coverage gate, doc, and optional audit steps.
 
 ## Common Commands
 - Verify locally: `./scripts/rust_verify.sh`
@@ -21,8 +21,8 @@ This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo
 - Documentation build: remove or tweak the `cargo doc --no-deps` step if your project cannot generate docs.
 
 ## Disabling or Removing
-- Temporary hook skip: `SKIP=cargo-fmt cargo-clippy cargo-test cargo-audit pre-commit run --all-files` (document skips).
-- Remove hooks: delete `.pre-commit-config.yaml` and uninstall hooks with `pre-commit uninstall`.
+- Temporary hook skip: `SKIP=cargo-fmt cargo-clippy cargo-test cargo-audit cargo-machete prek run --all-files` (document skips).
+- Remove hooks: delete `.pre-commit-config.yaml` and remove installed Git hook(s) if needed.
 - Remove CI: delete `.github/workflows/ci-rust.yml` and related steps.
 
 ## Keeping It Fast
@@ -32,3 +32,8 @@ This project is bootstrapped with cargo fmt/clippy/test hooks, an optional cargo
 ## Upgrades
 - Update dependencies through `cargo update` and commit `Cargo.lock` diffs.
 - Re-run the bootstrap to pick up new safeguards; scripts are idempotent and preserve manual edits.
+
+## Budgets & Thresholds
+- Cognitive complexity: configured in `clippy.toml` (default `cognitive-complexity-threshold = 25`).
+- Coverage gate: `./scripts/rust_verify.sh` enforces a low starting threshold (`COVERAGE_MIN` env, default 20). CI enforces `--fail-under-lines=20`.
+- Doc/comments: crate template enables `#![deny(missing_docs, rustdoc::missing_crate_level_docs)]` and warns on missing panic/error/safety docs for APIs.

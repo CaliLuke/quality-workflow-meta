@@ -21,6 +21,8 @@ rustup component add clippy rustfmt
 # Install hook runner (Rust-native):
 brew install prek    # or: uv tool install prek  |  cargo install --locked --git https://github.com/j178/prek
 cargo install --locked cargo-machete  # unused-deps pre-commit hook
+rustup component add llvm-tools-preview
+cargo install cargo-llvm-cov
 prek install
 ./scripts/rust_verify.sh
 ```
@@ -31,3 +33,4 @@ Useful commands
 ## After Install
 - Read the Safety Manual: `docs/safety-manuals/safety-manual-rust.md`
 - CI workflow: `.github/workflows/ci-rust.yml`
+ - Coverage: CI runs `cargo llvm-cov` with a low threshold; adjust locally via `COVERAGE_MIN` env when running `scripts/rust_verify.sh`.
