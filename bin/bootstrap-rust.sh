@@ -338,8 +338,27 @@ if command -v prek >/dev/null 2>&1; then
   prek install || true
   echo "[bootstrap-rust] Hooks installed with prek."
 else
-  echo "[bootstrap-rust] 'prek' not found. Install it and then run: 'prek install'"
-  echo "[bootstrap-rust] Install options: brew install prek | uv tool install prek | cargo install --locked --git https://github.com/j178/prek"
+  echo "[bootstrap-rust] 'prek' not found."
+  if command -v cargo >/dev/null 2>&1; then
+    echo "[bootstrap-rust] Attempting to install prek via cargo (git)..."
+    if cargo install --locked --git https://github.com/j178/prek; then
+      PREK_BIN="$(command -v prek || echo "$HOME/.cargo/bin/prek")"
+      if [ -x "$PREK_BIN" ]; then
+        echo "[bootstrap-rust] Running '$PREK_BIN install'..."
+        "$PREK_BIN" install || true
+        echo "[bootstrap-rust] Hooks installed with prek."
+      else
+        echo "[bootstrap-rust] prek installed but not on PATH. Add '$HOME/.cargo/bin' to PATH, then run: prek install" >&2
+        exit 1
+      fi
+    else
+      echo "[bootstrap-rust] Failed to install prek via cargo. Install manually: brew install prek | uv tool install prek" >&2
+      exit 1
+    fi
+  else
+    echo "[bootstrap-rust] Neither 'prek' nor 'cargo' found. Install prek and re-run: brew install prek | uv tool install prek" >&2
+    exit 1
+  fi
 fi
 
 # Friendly reminder to enable machete unused-deps checks
